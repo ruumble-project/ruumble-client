@@ -23,7 +23,7 @@ cat > "$P/DEBIAN/control" <<CTRL
 Package: ruumble-desk
 Version: $VERSION
 Architecture: $(dpkg --print-architecture)
-Maintainer: divzer0 <divzer0@proton.me>
+Maintainer: Kevin Messerschmidt <divzer0@proton.me>
 Section: sound
 Priority: optional
 Depends: $DEPS, $RUNTIME
