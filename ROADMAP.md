@@ -190,8 +190,10 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       `patches/mumble` (`main.cpp`): Desk calls and registers `net.sourceforge.mumble.ruumbledesk`. Checked: the
       session bus lists the Desk name, Desk starts as its own process
 - [ ] Kevin: drag a person with the mouse on the desktop
-- [ ] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
-      Chromium 102; harmless at normal widths, no fallback yet
+- [x] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
+      Chromium 102. Fix 2026-11-04: the room's measured width sets the class `narrow`, used only under
+      `@supports not (container-type: inline-size)`; the 170 px rule was dead (rooms are at least 190 px) and is gone.
+      Checked headless in Desk: a room forced to 200 px shows the count behind the name, at 300 px below it
 
 ## Later, outside this pilot
 
@@ -228,7 +230,7 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
 - Local test setup: `test/README.md`. The service runs on the host (the Docker image build is
   very slow here), with `ADDRESS_CHECK=warn` because Mumble in Docker sees the host as 172.x.
 - Found in passing (Ruumble repo, not touched): `pnpm -F @ruumble/protocol build` fails,
-  `schema/protocol.schema.json` is out of date on `main` (Node 24 here; maybe Node 22 differs).
+  `schema/protocol.schema.json` is out of date on `main` (Node 24 here; maybe Node 22 differs). Checked again 2026-11-04 with Node 24: up to date.
 - Roughly 50 changed lines in Mumble files (all under `#ifdef USE_RUUMBLE`) plus the CMake block;
   `patches/mumble` holds the touch points.
 - After every `web` build the Ruumble service must be restarted (`test/local-stack.sh up`): it only serves the
