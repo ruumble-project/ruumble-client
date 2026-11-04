@@ -6,12 +6,13 @@ Read `README.md` for the layout and the tools, `ROADMAP.md` for the state.
 
 ## The one rule
 
-**Mumble is never changed.** `tools/prepare.sh` clones it (from `../../mumble` if that exists, else GitHub) into
-`work/mumble` and applies `patches/mumble`. Never commit, edit or build inside `../../mumble`; use `work/mumble`.
-The old local checkout `../../Ruumble` is not used any more; Ruumble is the root of this repo and is edited there.
+**Mumble is never changed.** `tools/prepare.sh` clones it from GitHub at the tag in `pins.env` into `work/mumble`
+and applies `patches/mumble`; all Mumble work happens in `work/mumble` and goes back with `tools/export-patches.sh`.
+Ruumble is the root of this repo and is edited there. New Mumble releases arrive as a pull request from the workflow
+`mumble-release-watch.yml` at the repo root.
 
-Kevin's rules: no commits and no pushes unless he asks (then one-line messages, no bullets, no `Co-Authored-By`);
-no em or en dashes anywhere; code, comments and docs in English.
+Work like the rest of the repo (`../CLAUDE.md`): commit and push directly to `main`, one-line commit messages; no em or
+en dashes anywhere; code, comments and docs in English.
 
 Progress lives in `ROADMAP.md`: tick off every finished item right away (`[x]`, `[~]` in progress) and add notes,
 so Kevin or the next session can continue at any point.
