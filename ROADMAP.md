@@ -136,7 +136,7 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
 - [x] Checks 2026-11-04: root `pnpm lint && pnpm test && pnpm build` green (409 tests), `docker build -f
       deploy/Dockerfile .` ok, `./build.sh` ok (core 0.5.0 from the repo root), headless run connects, pairs and
       shows the Desk panel button, `MUMBLE_REPO=/nonexistent desk/package.sh appimage` ok (Mumble cloned from
-      GitHub as in CI, 5.5 min). Not yet run on GitHub Actions: a manual dry run of `release.yml` would check that
+      GitHub as in CI, 5.5 min). Web e2e (Playwright) 106 passed. Not yet run on GitHub Actions: a manual dry run of `release.yml` would check that
 - [ ] Kevin: push `merge-ruumble` to `main`; on GitHub enable Pages (source: GitHub Actions), keep issues on
       (release watch opens them), after the first release make the GHCR package `ruumble` public
 - [ ] First release from this repo (`tools/release.sh 0.33.0`, tag `v0.33.0`): image, plugin, AppImage
