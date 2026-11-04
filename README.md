@@ -45,6 +45,10 @@ Build dependencies (Ubuntu/Mint, once): see `CLAUDE.md`.
 
 `dist/ruumble-desk` uses the Qt libraries of this system and needs the build dependencies installed.
 
+Settings: Ruumble Desk keeps its own (`~/.config/Ruumble/Ruumble Desk/`), apart from the official Mumble. On its first
+start it takes over the official client's audio settings and shortcuts once (marker file `mumble-settings-imported`;
+delete it to import again) and its certificate (Mumble's automatic certificate backup).
+
 ## Packages for other machines (only Docker needed)
 
 ```sh

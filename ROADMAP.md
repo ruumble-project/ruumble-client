@@ -159,6 +159,12 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
       so it works against any Ruumble service. Checked against the 0.32.1 web UI built from `3cc31c2`. Lesson: a
       declaration with `var()` is only dropped when computed, so a plain declaration before it is no fallback;
       `@supports` is (the web fix uses it now too); the board is an `aside`
+- [x] 2026-11-04 (Kevin): no sound, could not talk in Desk. Cause: Desk has its own settings (by design), so Kevin's
+      push-to-talk shortcuts and audio settings from the official Mumble were missing. Fix: on the first start
+      `RuumbleIntegration::importMumbleSettings()` (called in `main.cpp` before the settings load) takes the official
+      client's `audio` section (without its mute/deaf state) and its shortcuts once; backup
+      `mumble_settings.json.before-mumble-import`, marker `mumble-settings-imported` in `~/.config/Ruumble/Ruumble Desk/`.
+      Existing Desk installs get it on their next start. Checked in an isolated home
 - [ ] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102; harmless at normal widths, no fallback yet
 

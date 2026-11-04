@@ -196,14 +196,15 @@ index ad30270dd..541978470 100644
  				} catch (const PluginError &e) {
  					// If an exception is thrown, this library does not represent a proper plugin
 diff --git a/src/mumble/main.cpp b/src/mumble/main.cpp
-index 3ab90d082..3a0d7861d 100644
+index 3ab90d082..c4043f822 100644
 --- a/src/mumble/main.cpp
 +++ b/src/mumble/main.cpp
-@@ -72,6 +72,12 @@
+@@ -72,6 +72,13 @@
  #include <spdlog/sinks/qt_sinks.h>
  #include <spdlog/sinks/rotating_file_sink.h>
  
 +#ifdef USE_RUUMBLE
++#	include "ruumble/RuumbleIntegration.h"
 +#	define RPC_NAME "RuumbleDesk"
 +#else
 +#	define RPC_NAME "Mumble"
@@ -212,7 +213,7 @@ index 3ab90d082..3a0d7861d 100644
  #ifdef USE_DBUS
  #	include <QtDBus/QDBusInterface>
  #endif
-@@ -391,13 +397,25 @@ int main(int argc, char **argv) {
+@@ -391,13 +398,25 @@ int main(int argc, char **argv) {
  #endif
  
  	// Initialize application object.
@@ -238,7 +239,7 @@ index 3ab90d082..3a0d7861d 100644
  
  #ifdef Q_OS_WIN
  	a.installNativeEventFilter(&a);
-@@ -572,7 +590,7 @@ int main(int argc, char **argv) {
+@@ -572,7 +591,7 @@ int main(int argc, char **argv) {
  		QMap< QString, QVariant > param;
  		QString rpcCommand = QString::fromStdString(*options.rpcCommand);
  		param.insert(rpcCommand, rpcCommand);
@@ -247,7 +248,7 @@ index 3ab90d082..3a0d7861d 100644
  		if (sent) {
  			return 0;
  		} else {
-@@ -594,7 +612,7 @@ int main(int argc, char **argv) {
+@@ -594,7 +613,7 @@ int main(int argc, char **argv) {
  			QDBusMessage reply = qdbi.call(QLatin1String("openUrl"), QLatin1String(url.toEncoded()));
  			sent               = (reply.type() == QDBusMessage::ReplyMessage);
  #else
@@ -256,7 +257,7 @@ index 3ab90d082..3a0d7861d 100644
  #endif
  			if (sent)
  				return 0;
-@@ -607,7 +625,7 @@ int main(int argc, char **argv) {
+@@ -607,7 +626,7 @@ int main(int argc, char **argv) {
  			QDBusMessage reply = qdbi.call(QLatin1String("focus"));
  			sent               = (reply.type() == QDBusMessage::ReplyMessage);
  #else
@@ -265,7 +266,21 @@ index 3ab90d082..3a0d7861d 100644
  #endif
  			if (sent)
  				return 0;
-@@ -805,7 +823,7 @@ int main(int argc, char **argv) {
+@@ -634,6 +653,13 @@ int main(int argc, char **argv) {
+ 	}
+ #endif
+ 
++#ifdef USE_RUUMBLE
++	// first start next to an official Mumble: take over its audio settings and shortcuts once
++	if (settingsFile.isEmpty()) {
++		ruumbledesk::RuumbleIntegration::importMumbleSettings();
++	}
++#endif
++
+ 	// Load preferences
+ 	if (settingsFile.isEmpty()) {
+ 		Global::get().s.load();
+@@ -805,7 +831,7 @@ int main(int argc, char **argv) {
  	QDBusConnection::sessionBus().registerService(QLatin1String("net.sourceforge.mumble.mumble"));
  #endif
  

@@ -52,6 +52,13 @@ public:
 	/** name of the plugin that the client must not load next to the built-in core */
 	static QString externalPluginName() { return QStringLiteral("Ruumble"); }
 
+	/**
+	 * Once, before the settings are loaded: takes the audio settings and the shortcuts (push-to-talk and others) of
+	 * an installed official Mumble into Ruumble Desk's own settings, which are kept apart otherwise (ADR-0024 D5).
+	 * Not the mute and deaf state of its last session. A marker file next to the settings makes it run only once.
+	 */
+	static void importMumbleSettings();
+
 signals:
 	// from the core's threads to the view (queued)
 	void serviceKnown(const QString &baseUrl);
