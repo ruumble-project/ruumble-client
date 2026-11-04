@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+	<qresource prefix="/ruumbledesk">
+		<file alias="popover-polyfill.js">compat/popover-polyfill.min.js</file>
+	</qresource>
+</RCC>

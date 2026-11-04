@@ -153,8 +153,12 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
       Chromium 102 (Qt 6.4), the web UI used the popover API (Chrome 114), `color-mix()` (111) and container units
       (105). Fixed in the web UI: popover polyfill loaded only where missing, fallbacks, build target `chrome102`.
       Checked headless in Desk: person card placed over the avatar, room description opens, closes on a click beside
-      it (trusted click, `cdp.mjs click`), board light and posting works; web e2e unchanged. Takes effect where the
-      service serves the new web UI, i.e. the colleague's server only after the first release from this repo
+      it (trusted click, `cdp.mjs click`), board light and posting works; web e2e unchanged.
+      Follow-up the same day: Kevin still saw the bugs on the colleague's server (old 0.32.1 web UI). Desk now injects
+      the polyfill and CSS fallbacks itself where the engine lacks them (`client/compat/`, `RuumbleView::compatScript`),
+      so it works against any Ruumble service. Checked against the 0.32.1 web UI built from `3cc31c2`. Lesson: a
+      declaration with `var()` is only dropped when computed, so a plain declaration before it is no fallback;
+      `@supports` is (the web fix uses it now too); the board is an `aside`
 - [ ] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102; harmless at normal widths, no fallback yet
 

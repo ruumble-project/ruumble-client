@@ -10,6 +10,7 @@ stage_files() {
   cat > "$P/usr/share/licenses/ruumble-desk/NOTICE" <<'COPY'
 Ruumble Desk: Mumble (BSD-3-Clause, https://github.com/mumble-voip/mumble) with Ruumble (BSD-3-Clause) built in.
 Uses Qt and Qt WebEngine (LGPL-3.0, Chromium) from the distribution.
+Contains the popover polyfill by OddBird (BSD-3-Clause, https://github.com/oddbird/popover-polyfill).
 COPY
 }
 DESCRIPTION_SHORT="Mumble client with the Ruumble office building built in"

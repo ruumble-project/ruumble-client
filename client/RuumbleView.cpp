@@ -82,6 +82,46 @@ namespace {
 		return script;
 	}
 
+	/**
+	 * Qt WebEngine 6.4 is Chromium 102: no popover API, no color-mix(), no container units. A web UI from this repo
+	 * copes with that itself, one served by an older Ruumble service does not (room descriptions always shown, person
+	 * cards misplaced, dark board). This script fills the gaps only where the engine lacks them (compat/README.md).
+	 */
+	QWebEngineScript compatScript() {
+		QString polyfill;
+		QFile file(QStringLiteral(":/ruumbledesk/popover-polyfill.js"));
+		if (file.open(QIODevice::ReadOnly)) {
+			polyfill = QString::fromUtf8(file.readAll());
+		}
+		const QString source =
+			QStringLiteral(
+				"(function () {\n"
+				"  if (!('showPopover' in HTMLElement.prototype)) {\n%1\n}\n"
+				"  if (window.CSS && CSS.supports('color', 'color-mix(in srgb, red, blue)')) return;\n"
+				// declarations with var() in them are only dropped when computed: the fallbacks must win the cascade
+				// (specificity above the UI's scoped .board.svelte-x rules, appended after its stylesheet)
+				"  var css = 'html:root{--color-board:#e9f3fc}'\n"
+				"    + '@supports not (width:1cqw){.board.board.board{width:var(--board-width)}}'\n"
+				"    + '.board .card.card:hover,.board .card.card:focus-within,.board .card.card.active'\n"
+				"    + '{background:var(--color-blue-50)}';\n"
+				"  function add() {\n"
+				"    var style = document.createElement('style');\n"
+				"    style.id = 'ruumbledesk-compat';\n"
+				"    style.textContent = css;\n"
+				"    (document.head || document.documentElement).appendChild(style);\n"
+				"  }\n"
+				"  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', add); else add();\n"
+				"})();")
+				.arg(polyfill);
+		QWebEngineScript script;
+		script.setSourceCode(source);
+		script.setName(QStringLiteral("ruumbledesk-compat"));
+		script.setInjectionPoint(QWebEngineScript::DocumentCreation);
+		script.setWorldId(QWebEngineScript::MainWorld);
+		script.setRunsOnSubFrames(false);
+		return script;
+	}
+
 	/** placeholder in Ruumble's look (colors of web/src/app.css) */
 	QString placeholderHtml(bool connected) {
 		const QString text = connected
@@ -126,6 +166,7 @@ RuumbleView::RuumbleView(QObject *desk, std::function< void(const QString &) > o
 	m_profile->setCachePath(QDir(base).filePath(QLatin1String("cache")));
 	m_profile->setPersistentCookiesPolicy(QWebEngineProfile::AllowPersistentCookies);
 	m_profile->scripts()->insert(webChannelScript());
+	m_profile->scripts()->insert(compatScript());
 
 	// downloads (board files, tube mail, care export) go to the user's download folder
 	QObject::connect(m_profile, &QWebEngineProfile::downloadRequested, this, [](QWebEngineDownloadRequest *download) {

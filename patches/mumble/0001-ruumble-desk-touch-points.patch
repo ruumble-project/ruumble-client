@@ -1,8 +1,8 @@
 diff --git a/src/mumble/CMakeLists.txt b/src/mumble/CMakeLists.txt
-index 1f3daa534..2bc0eba04 100644
+index 1f3daa534..910028ea1 100644
 --- a/src/mumble/CMakeLists.txt
 +++ b/src/mumble/CMakeLists.txt
-@@ -1247,3 +1247,51 @@ if(packaging AND WIN32)
+@@ -1247,3 +1247,52 @@ if(packaging AND WIN32)
  		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/installer/client
  	)
  endif()
@@ -49,6 +49,7 @@ index 1f3daa534..2bc0eba04 100644
 +		"ruumble/RuumbleIntegration.h"
 +		"ruumble/RuumbleView.cpp"
 +		"ruumble/RuumbleView.h"
++		"ruumble/ruumble-desk.qrc"
 +	)
 +	target_include_directories(mumble_client_object_lib PRIVATE "${RUUMBLE_CORE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/ruumble")
 +	target_compile_definitions(mumble_client_object_lib PUBLIC USE_RUUMBLE RUUMBLE_CORE_VERSION="${RUUMBLE_CORE_VERSION}")
