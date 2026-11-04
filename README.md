@@ -5,8 +5,9 @@ underneath (local pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
 
 Ruumble itself (service, web UI, plugin) is the root of this repo; this folder `desk/` holds the client. Mumble is
 **used, never changed**: `tools/prepare.sh` clones it into `work/` (git-ignored), checks out the tag from `pins.env`
-and applies `patches/mumble`. A local checkout at `../../mumble` is used if there is one, otherwise it is cloned
-from GitHub.
+and applies `patches/mumble`. It is cloned from GitHub; `MUMBLE_REPO=<path>` uses a local checkout instead.
+New Mumble releases arrive as a pull request (`.github/workflows/mumble-release-watch.yml`): it moves the pin, applies
+the patch with a 3-way merge, lets Claude adapt it if needed (repo secret `ANTHROPIC_API_KEY`), builds and tests.
 
 ```
 desk/
@@ -23,7 +24,7 @@ desk/
 ## Use
 
 ```sh
-tools/prepare.sh           # work/mumble from ../../mumble or GitHub (read only)
+tools/prepare.sh           # work/mumble: Mumble from GitHub at the pinned tag, plus the patch
 tools/build.sh             # client into work/build (first time ~10 min)
 test/local-stack.sh up     # local Mumble server (Docker) + Ruumble service from the repo root
 tools/run.sh               # Ruumble Desk; the server manager opens, connect to 127.0.0.1:64738
