@@ -54,6 +54,8 @@ if [ "${1:-}" = --install ]; then
   install -m 644 "$DIST/ruumble-desk.desktop" "$APPS/ruumble-desk.desktop"
   ln -sfn "$DIST/ruumble-desk" "$BIN/ruumble-desk"
   command -v update-desktop-database >/dev/null && update-desktop-database "$APPS" 2>/dev/null || true
+  # an icon cache older than the icon hides it from the menu (Cinnamon, GNOME): refresh it
+  command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -q -f -t "${ICONS%/scalable/apps}" || true
   echo "installed: start menu entry \"Ruumble Desk\", command ruumble-desk"
 fi
 
