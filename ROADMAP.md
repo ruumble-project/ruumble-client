@@ -206,7 +206,8 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       host's newer ones: "NSSUTIL_3.94 not found", FATAL in `nss_util.cc`. The local test stack is plain HTTP, so no
       test saw it; 0.33.0's AppImage has the bug too. Fix: `tools/appimage.sh` copies the build system's modules next
       to `libnss3.so`. Reproduced and checked headless (AppImage, host offscreen plugin, `bridgeUrl` https), Kevin
-      checked it against the colleague's server
+      checked it against the colleague's server. Released at once as 0.33.1 (2026-11-04): image `0.33.1`/`latest`,
+      `Ruumble_Desk-0.33.1-x86_64.AppImage`, all Release jobs green on the first run
 - [ ] Kevin: drag a person with the mouse on the desktop
 - [x] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102. Fix 2026-11-04: the room's measured width sets the class `narrow`, used only under
