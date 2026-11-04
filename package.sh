@@ -11,8 +11,8 @@
 #   ./package.sh deb --distro <name>       same as package (kept for the Debian ones)
 #   ./package.sh every                     packages for all four distros plus the AppImage
 #
-# The repo (Ruumble at the root, Desk in desk/) and a local Mumble checkout are mounted read only; only dist/ is
-# written. Without a local Mumble checkout the container clones it from MUMBLE_URL (pins.env).
+# The repo (Ruumble at the root, Desk in desk/) is mounted read only, only dist/ is written. The container clones
+# Mumble from MUMBLE_URL (pins.env), or uses a local checkout named in MUMBLE_REPO (mounted read only).
 set -eu
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 source "$ROOT/tools/common.sh"
@@ -41,7 +41,9 @@ run() { # target distro
   docker build -q -t "$image" -f "$ROOT/packaging/${spec%% *}" --build-arg BASE="${spec#* }" "$ROOT/packaging" >/dev/null
   mkdir -p "$ROOT/dist"
   local mumble=()  # a local Mumble checkout is used if there is one, otherwise the container clones MUMBLE_URL
-  if src=$(abs "$MUMBLE_REPO") && [ -d "$src/.git" ]; then mumble=(-v "$src:/in/mumble:ro"); fi
+  if [ -n "$MUMBLE_REPO" ] && src=$(abs "$MUMBLE_REPO") && [ -d "$src/.git" ]; then
+    mumble=(-v "$src:/in/mumble:ro" -e MUMBLE_REPO=/in/mumble)
+  fi
   docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
     -v "$RU:/in/repo:ro" "${mumble[@]}" \
     -v "$ROOT/dist:/out" "$image" /in/repo/desk/packaging/in-container.sh "$1" "$2"
