@@ -4,7 +4,9 @@
 //   signals     logged(entry), serverChanged()
 //   methods     history() -> entry[], sendMessage(text) -> bool,
 //               openSettings(), openConnect(), openAudioWizard(), disconnectServer(),
-//               showMenu(x, y) (Mumble's menus at CSS pixel x/y of the page), showUserList(on)
+//               showMenu(x, y) (Mumble's menus at CSS pixel x/y of the page), showUserList(on),
+//               showChannelMenu(channelId, x, y), showUserMenu(session, x, y) (Mumble's own context menus for a
+//               channel or a user: add, remove, edit, ACL, links, kick, ban, ... ), moveUser(session, channelId)
 //   entry       { id: number, time: ms since epoch, kind: "text"|"private"|"own"|"warning"|"info", text: string }
 // Log texts are plain text (never Mumble's HTML), so the page can show them without parsing markup.
 
@@ -47,6 +49,12 @@ public:
 	Q_INVOKABLE void disconnectServer();
 	Q_INVOKABLE void showMenu(double x, double y);
 	Q_INVOKABLE void showUserList(bool on);
+	/** Mumble's channel menu for that channel (ids as in the snapshot = Mumble's channel ids) */
+	Q_INVOKABLE void showChannelMenu(int channelId, double x, double y);
+	/** Mumble's user menu for that user (session as in the snapshot) */
+	Q_INVOKABLE void showUserMenu(int session, double x, double y);
+	/** drag and drop of a person onto a room: moves that user, with the user's own Mumble permissions */
+	Q_INVOKABLE void moveUser(int session, int channelId);
 
 	/** from the integration: connection to a Mumble server changed */
 	void setServer(const QString &server);
@@ -56,6 +64,10 @@ signals:
 	void serverChanged();
 	/** the page asked for the log: it has the Desk panel (web UI 0.33.0 or newer) */
 	void panelSeen();
+	// to the integration, queued: a nested menu loop must not run inside the web channel's message handler
+	void channelMenuRequested(unsigned int channelId, const QPoint &cssPos);
+	void userMenuRequested(unsigned int session, const QPoint &cssPos);
+	void userMoveRequested(unsigned int session, unsigned int channelId);
 
 private:
 	void attachLog();

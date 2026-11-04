@@ -169,6 +169,18 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
       the web UI, which an older service (0.32.1) does not have, and Desk hides Mumble's own docks. Fix: when the
       service's page has not asked `desk.history()` 4 s after loading, Desk shows Mumble's log and chat docks; the
       Mumble menu has "Mumble log and chat" to switch them by hand. Checked against the 0.32.1 and the current web UI
+- [x] 2026-11-04 (Kevin): everything Mumble can do, in the building. Right click on room, corridor, floor sign,
+      elevator floor or person opens Mumble's own `qmChannel`/`qmUser` (`RuumbleIntegration::showChannelMenu`,
+      `showUserMenu`: the target is selected in the hidden user tree first, because Mumble takes that before
+      `cContextChannel`, and the old selection is restored), the building line in the elevator opens the root
+      channel's menu (new floor). Desk adds "Move to floor" to the channel menu. People are dragged onto rooms
+      (`desk.moveUser`, follows Mumble's "user dragging" setting). Destructive actions only through the native menu
+      (ADR-0017). Web: `web/src/lib/desk/admin.ts` (context), active only inside Desk. Settings entries moved from
+      the user menu into the Desk panel (Kevin). Checked headless with trusted right clicks (menus log their
+      entries) and drag events; a real mouse drag cannot run in Qt's offscreen platform (dragstart, then dragend at
+      once), so Kevin checks the drag on the desktop. Test data: `desk/test/seed.cjs` (descriptions, everyone may
+      administer the LOCAL test building)
+- [ ] Kevin: drag a person with the mouse on the desktop
 - [ ] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102; harmless at normal widths, no fallback yet
 

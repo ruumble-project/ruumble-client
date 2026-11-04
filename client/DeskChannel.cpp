@@ -135,6 +135,24 @@ void DeskChannel::showMenu(double x, double y) {
 	}
 }
 
+void DeskChannel::showChannelMenu(int channelId, double x, double y) {
+	if (m_allowed() && channelId >= 0) {
+		emit channelMenuRequested(static_cast< unsigned int >(channelId), QPoint(static_cast< int >(x), static_cast< int >(y)));
+	}
+}
+
+void DeskChannel::showUserMenu(int session, double x, double y) {
+	if (m_allowed() && session > 0) {
+		emit userMenuRequested(static_cast< unsigned int >(session), QPoint(static_cast< int >(x), static_cast< int >(y)));
+	}
+}
+
+void DeskChannel::moveUser(int session, int channelId) {
+	if (m_allowed() && session > 0 && channelId >= 0) {
+		emit userMoveRequested(static_cast< unsigned int >(session), static_cast< unsigned int >(channelId));
+	}
+}
+
 void DeskChannel::showUserList(bool on) {
 	if (m_allowed()) {
 		m_showUserList(on);

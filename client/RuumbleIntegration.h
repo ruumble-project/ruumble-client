@@ -53,6 +53,16 @@ public:
 	 * Ruumble service), so there is always a chat; the Mumble menu switches it by hand.
 	 */
 	void setLogVisible(bool visible);
+	/**
+	 * Mumble's own context menus for a channel or a user of the building (right click in the web UI): every Mumble
+	 * function (add, remove, edit, ACL, links, kick, ban, register, ...) with the user's own permissions. Destructive
+	 * actions therefore always need a real click in a native menu, never a call of the page alone (ADR-0017).
+	 * viewPos in CSS pixels of the page.
+	 */
+	void showChannelMenu(unsigned int channelId, const QPoint &viewPos);
+	void showUserMenu(unsigned int session, const QPoint &viewPos);
+	/** a person dragged onto a room: like a drag in Mumble's tree (follows its "user dragging" setting) */
+	void moveUser(unsigned int session, unsigned int channelId);
 
 	/** name of the plugin that the client must not load next to the built-in core */
 	static QString externalPluginName() { return QStringLiteral("Ruumble"); }

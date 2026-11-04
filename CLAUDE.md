@@ -27,7 +27,9 @@ Works well **on this machine**: phases 0 and 1 of the ADR plus "Ruumble UI as ho
   pairing link opens in the view).
 - `client/RuumbleIntegration`: hides Mumble's menu bar, toolbar and docks; Mumble's menus stay reachable as a native
   popup (F10, panel, user menu), the user list and Mumble's log and chat as optional docks (log and chat shown by
-  themselves when the page has no Desk panel, i.e. an older service), settings with Ctrl+,.
+  themselves when the page has no Desk panel, i.e. an older service), settings with Ctrl+,. Right click in the building
+  opens Mumble's own channel or user menu, people are dragged onto rooms (`showChannelMenu`, `showUserMenu`,
+  `moveUser`; web side `../web/src/lib/desk/admin.ts`). Destructive actions only via the native menu.
 - `client/DeskChannel`: object `desk` over QWebChannel (contract in `DeskChannel.h`), used by the web part in
   `../web/src/lib/desk/` and `../web/src/lib/ui/desk/DeskPanel.svelte`. Keep both sides in sync.
 

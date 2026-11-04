@@ -4,6 +4,7 @@
 #include "QtMumbleApi.h"
 #include "RuumbleView.h"
 
+#include "Channel.h"
 #include "ClientUser.h"
 #include "Global.h"
 #include "MainWindow.h"
@@ -23,6 +24,8 @@
 #include <QtCore/QJsonObject>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QTimer>
+#include <QtCore/QPersistentModelIndex>
+#include <QtWidgets/QMessageBox>
 #include <QtGui/QShortcut>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QMenu>
@@ -129,6 +132,13 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 		QObject::connect(commaKey, &QShortcut::activated, mw, [mw] { mw->on_qaConfigDialog_triggered(); });
 	}
 	QObject::connect(m_view, &QWebEngineView::titleChanged, this, &RuumbleIntegration::updateWindowTitle);
+	// right click and drag and drop in the building (queued from the page's call, see DeskChannel)
+	QObject::connect(m_desk, &DeskChannel::channelMenuRequested, this, &RuumbleIntegration::showChannelMenu,
+					 Qt::QueuedConnection);
+	QObject::connect(m_desk, &DeskChannel::userMenuRequested, this, &RuumbleIntegration::showUserMenu,
+					 Qt::QueuedConnection);
+	QObject::connect(m_desk, &DeskChannel::userMoveRequested, this, &RuumbleIntegration::moveUser,
+					 Qt::QueuedConnection);
 	// an older service's web UI has no Desk panel and so no log or chat: then Mumble's own docks are shown
 	QObject::connect(m_desk, &DeskChannel::panelSeen, this, [this] {
 		m_panelSeen = true;
@@ -269,6 +279,147 @@ void RuumbleIntegration::setLogVisible(bool visible) {
 	qInfo("Ruumble Desk: Mumble log and chat %s", visible ? "shown" : "hidden");
 	m_mw->qdwLog->setVisible(visible);
 	m_mw->qdwChat->setVisible(visible);
+}
+
+namespace {
+	/** Mumble picks a menu's target from the selection in its user tree first (MainWindow::getContextMenuTargets),
+	 * and that tree sits in the hidden users dock here: select the target for the menu, restore the old selection
+	 * afterwards (it is also the target of Mumble's chat bar) */
+	class TreeSelection {
+	public:
+		TreeSelection(MainWindow *mw, const QModelIndex &target) : m_mw(mw), m_old(mw->qtvUsers->currentIndex()) {
+			m_mw->qpContextPosition = QPoint();
+			m_mw->qtvUsers->setCurrentIndex(target);
+		}
+		~TreeSelection() {
+			m_mw->cContextChannel.clear();
+			m_mw->cuContextUser.clear();
+			if (m_old.isValid()) {
+				m_mw->qtvUsers->setCurrentIndex(m_old);
+			}
+		}
+
+	private:
+		MainWindow *m_mw;
+		QPersistentModelIndex m_old;
+	};
+
+	bool connectedToServer() { return Global::get().sh && Global::get().uiSession != 0 && ClientUser::get(Global::get().uiSession); }
+
+	QStringList actionTitles(const QMenu *menu) {
+		QStringList titles;
+		for (const QAction *action : menu->actions()) {
+			if (!action->isSeparator() && action->isVisible()) {
+				titles << action->text().remove(QLatin1Char('&'));
+			}
+		}
+		return titles;
+	}
+} // namespace
+
+void RuumbleIntegration::showChannelMenu(unsigned int channelId, const QPoint &viewPos) {
+	Channel *channel = Channel::get(channelId);
+	if (!connectedToServer() || !channel) {
+		return;
+	}
+	const QPoint global = m_view->mapToGlobal(viewPos * m_view->zoomFactor());
+	TreeSelection selection(m_mw, m_mw->pmModel->index(channel));
+	m_mw->cContextChannel = channel;
+
+	// after Mumble has filled the menu (its aboutToShow runs first): moving a room to another floor, which Mumble
+	// only offers as a drag in its tree
+	const QMetaObject::Connection extra = QObject::connect(m_mw->qmChannel, &QMenu::aboutToShow, this, [this, channelId] {
+		Channel *c = Channel::get(channelId);
+		Channel *root = Channel::get(Mumble::ROOT_CHANNEL_ID);
+		if (!c || !root || c == root) {
+			return;
+		}
+		QMenu *floors = new QMenu(tr("Move to floor"), m_mw->qmChannel);
+		QObject::connect(m_mw->qmChannel, &QMenu::aboutToHide, floors, &QObject::deleteLater);
+		for (Channel *floor : root->qlChannels) {
+			if (floor == c || floor == c->cParent) {
+				continue;
+			}
+			QAction *to = floors->addAction(floor->qsName);
+			const unsigned int parentId = floor->iId;
+			QObject::connect(to, &QAction::triggered, this, [channelId, parentId] {
+				if (!Global::get().sh) {
+					return;
+				}
+				MumbleProto::ChannelState mpcs;
+				mpcs.set_channel_id(channelId);
+				mpcs.set_parent(parentId);
+				Global::get().sh->sendMessage(mpcs);
+			});
+		}
+		if (c->cParent != root) {
+			floors->addSeparator();
+			QAction *own = floors->addAction(tr("As a floor of its own"));
+			QObject::connect(own, &QAction::triggered, this, [channelId] {
+				if (!Global::get().sh) {
+					return;
+				}
+				MumbleProto::ChannelState mpcs;
+				mpcs.set_channel_id(channelId);
+				mpcs.set_parent(Mumble::ROOT_CHANNEL_ID);
+				Global::get().sh->sendMessage(mpcs);
+			});
+		}
+		if (!floors->isEmpty()) {
+			m_mw->qmChannel->addSeparator();
+			m_mw->qmChannel->addMenu(floors);
+		}
+		qInfo() << "Ruumble Desk: channel menu for" << c->qsName << actionTitles(m_mw->qmChannel);
+	});
+	m_mw->qmChannel->exec(global);
+	QObject::disconnect(extra);
+}
+
+void RuumbleIntegration::showUserMenu(unsigned int session, const QPoint &viewPos) {
+	ClientUser *user = ClientUser::get(session);
+	if (!connectedToServer() || !user) {
+		return;
+	}
+	const QPoint global = m_view->mapToGlobal(viewPos * m_view->zoomFactor());
+	TreeSelection selection(m_mw, m_mw->pmModel->index(user));
+	m_mw->cuContextUser = user;
+	const QMetaObject::Connection log = QObject::connect(m_mw->qmUser, &QMenu::aboutToShow, this, [this, user] {
+		qInfo() << "Ruumble Desk: user menu for" << user->qsName << actionTitles(m_mw->qmUser);
+	});
+	m_mw->qmUser->exec(global);
+	QObject::disconnect(log);
+}
+
+void RuumbleIntegration::moveUser(unsigned int session, unsigned int channelId) {
+	ClientUser *user = ClientUser::get(session);
+	Channel *channel = Channel::get(channelId);
+	if (!connectedToServer() || !user || !channel || user->cChannel == channel) {
+		return;
+	}
+	// another person: as Mumble's tree does it, after the "user dragging" setting
+	if (session != Global::get().uiSession) {
+		switch (Global::get().s.ceUserDrag) {
+			case Settings::Ask:
+				if (QMessageBox::question(m_mw, QLatin1String("Ruumble Desk"),
+										  tr("Move %1 to %2?").arg(user->qsName, channel->qsName), QMessageBox::Yes,
+										  QMessageBox::No)
+					!= QMessageBox::Yes) {
+					return;
+				}
+				break;
+			case Settings::DoNothing:
+				Global::get().l->log(Log::Information,
+									 tr("You have User Dragging set to \"Do Nothing\" so the user wasn't moved."));
+				return;
+			case Settings::Move:
+				break;
+		}
+	}
+	qInfo() << "Ruumble Desk: moving" << user->qsName << "to" << channel->qsName;
+	MumbleProto::UserState mpus;
+	mpus.set_session(session);
+	mpus.set_channel_id(channelId);
+	Global::get().sh->sendMessage(mpus);
 }
 
 void RuumbleIntegration::showMumbleMenu(const QPoint &viewPos) {

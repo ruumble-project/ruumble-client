@@ -2,6 +2,7 @@
 //   node cdp.mjs shot <file.png>       screenshot
 //   node cdp.mjs eval '<js expression>' evaluate in the page (awaits promises), prints JSON
 //   node cdp.mjs click <x> <y>          a real (trusted) left click at that point, as a user would
+//   node cdp.mjs rclick <x> <y>         the same with the right button (context menu)
 import { writeFileSync } from "node:fs";
 const port = process.env.DEVTOOLS_PORT || 9333;
 const targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
@@ -19,8 +20,8 @@ if (cmd === "shot") {
   const r = await send("Page.captureScreenshot", { format: "png" });
   writeFileSync(arg, Buffer.from(r.result.data, "base64"));
   console.log("saved", arg);
-} else if (cmd === "click") {
-  const at = { x: Number(arg), y: Number(arg2), button: "left", clickCount: 1 };
+} else if (cmd === "click" || cmd === "rclick") {
+  const at = { x: Number(arg), y: Number(arg2), button: cmd === "click" ? "left" : "right", clickCount: 1 };
   await send("Input.dispatchMouseEvent", { type: "mouseMoved", ...at, button: "none" });
   await send("Input.dispatchMouseEvent", { type: "mousePressed", ...at });
   await send("Input.dispatchMouseEvent", { type: "mouseReleased", ...at });
