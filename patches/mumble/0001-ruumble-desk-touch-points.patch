@@ -196,24 +196,28 @@ index ad30270dd..541978470 100644
  				} catch (const PluginError &e) {
  					// If an exception is thrown, this library does not represent a proper plugin
 diff --git a/src/mumble/main.cpp b/src/mumble/main.cpp
-index 3ab90d082..c4043f822 100644
+index 3ab90d082..1c10379c0 100644
 --- a/src/mumble/main.cpp
 +++ b/src/mumble/main.cpp
-@@ -72,6 +72,13 @@
+@@ -72,6 +72,17 @@
  #include <spdlog/sinks/qt_sinks.h>
  #include <spdlog/sinks/rotating_file_sink.h>
  
 +#ifdef USE_RUUMBLE
 +#	include "ruumble/RuumbleIntegration.h"
 +#	define RPC_NAME "RuumbleDesk"
++// own D-Bus name: the official Mumble owns net.sourceforge.mumble.mumble, and a URL or focus request must never reach
++// it from Ruumble Desk (or the other way round)
++#	define DBUS_NAME "net.sourceforge.mumble.ruumbledesk"
 +#else
 +#	define RPC_NAME "Mumble"
++#	define DBUS_NAME "net.sourceforge.mumble.mumble"
 +#endif
 +
  #ifdef USE_DBUS
  #	include <QtDBus/QDBusInterface>
  #endif
-@@ -391,13 +398,25 @@ int main(int argc, char **argv) {
+@@ -391,13 +402,25 @@ int main(int argc, char **argv) {
  #endif
  
  	// Initialize application object.
@@ -239,7 +243,7 @@ index 3ab90d082..c4043f822 100644
  
  #ifdef Q_OS_WIN
  	a.installNativeEventFilter(&a);
-@@ -572,7 +591,7 @@ int main(int argc, char **argv) {
+@@ -572,7 +595,7 @@ int main(int argc, char **argv) {
  		QMap< QString, QVariant > param;
  		QString rpcCommand = QString::fromStdString(*options.rpcCommand);
  		param.insert(rpcCommand, rpcCommand);
@@ -248,7 +252,14 @@ index 3ab90d082..c4043f822 100644
  		if (sent) {
  			return 0;
  		} else {
-@@ -594,7 +613,7 @@ int main(int argc, char **argv) {
+@@ -588,26 +611,26 @@ int main(int argc, char **argv) {
+ #endif
+ 			bool sent = false;
+ #ifdef USE_DBUS
+-			QDBusInterface qdbi(QLatin1String("net.sourceforge.mumble.mumble"), QLatin1String("/"),
++			QDBusInterface qdbi(QLatin1String(DBUS_NAME), QLatin1String("/"),
+ 								QLatin1String("net.sourceforge.mumble.Mumble"));
+ 
  			QDBusMessage reply = qdbi.call(QLatin1String("openUrl"), QLatin1String(url.toEncoded()));
  			sent               = (reply.type() == QDBusMessage::ReplyMessage);
  #else
@@ -257,7 +268,13 @@ index 3ab90d082..c4043f822 100644
  #endif
  			if (sent)
  				return 0;
-@@ -607,7 +626,7 @@ int main(int argc, char **argv) {
+ 		} else {
+ 			bool sent = false;
+ #ifdef USE_DBUS
+-			QDBusInterface qdbi(QLatin1String("net.sourceforge.mumble.mumble"), QLatin1String("/"),
++			QDBusInterface qdbi(QLatin1String(DBUS_NAME), QLatin1String("/"),
+ 								QLatin1String("net.sourceforge.mumble.Mumble"));
+ 
  			QDBusMessage reply = qdbi.call(QLatin1String("focus"));
  			sent               = (reply.type() == QDBusMessage::ReplyMessage);
  #else
@@ -266,7 +283,7 @@ index 3ab90d082..c4043f822 100644
  #endif
  			if (sent)
  				return 0;
-@@ -634,6 +653,13 @@ int main(int argc, char **argv) {
+@@ -634,6 +657,13 @@ int main(int argc, char **argv) {
  	}
  #endif
  
@@ -280,8 +297,12 @@ index 3ab90d082..c4043f822 100644
  	// Load preferences
  	if (settingsFile.isEmpty()) {
  		Global::get().s.load();
-@@ -805,7 +831,7 @@ int main(int argc, char **argv) {
- 	QDBusConnection::sessionBus().registerService(QLatin1String("net.sourceforge.mumble.mumble"));
+@@ -802,10 +832,10 @@ int main(int argc, char **argv) {
+ #ifdef USE_DBUS
+ 	new MumbleDBus(Global::get().mw);
+ 	QDBusConnection::sessionBus().registerObject(QLatin1String("/"), Global::get().mw);
+-	QDBusConnection::sessionBus().registerService(QLatin1String("net.sourceforge.mumble.mumble"));
++	QDBusConnection::sessionBus().registerService(QLatin1String(DBUS_NAME));
  #endif
  
 -	SocketRPC *srpc = new SocketRPC(QLatin1String("Mumble"));

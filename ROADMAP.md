@@ -180,6 +180,11 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
       entries) and drag events; a real mouse drag cannot run in Qt's offscreen platform (dragstart, then dragend at
       once), so Kevin checks the drag on the desktop. Test data: `desk/test/seed.cjs` (descriptions, everyone may
       administer the LOCAL test building)
+- [x] 2026-11-04: Ruumble Desk used the official Mumble's D-Bus name `net.sourceforge.mumble.mumble` for its
+      single-instance check. Starting Desk with a `mumble://` URL while the official Mumble ran sent the URL to the
+      official client, which left Kevin's work session for the local test server (about 11 s). Fix in
+      `patches/mumble` (`main.cpp`): Desk calls and registers `net.sourceforge.mumble.ruumbledesk`. Checked: the
+      session bus lists the Desk name, Desk starts as its own process
 - [ ] Kevin: drag a person with the mouse on the desktop
 - [ ] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102; harmless at normal widths, no fallback yet
