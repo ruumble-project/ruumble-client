@@ -56,17 +56,15 @@ delete it to import again) and its certificate (Mumble's automatic certificate b
 ./package.sh appimage                  # dist/Ruumble_Desk-x86_64.AppImage, one file with Qt and Qt WebEngine inside
 ./package.sh package --distro debian12     # .deb for Debian 12      sudo apt install ./dist/ruumble-desk_*+debian12_amd64.deb
 ./package.sh package --distro ubuntu2404   # .deb for Ubuntu 24.04 and Mint 22
-./package.sh package --distro fedora       # .rpm for the current Fedora   sudo dnf install ./dist/ruumble-desk-*.rpm
-./package.sh package --distro arch         # Arch Linux package      sudo pacman -U dist/ruumble-desk-*.pkg.tar.zst
-./package.sh all --distro arch             # the package for that distro plus the AppImage
-./package.sh every                         # all four packages plus the AppImage
+./package.sh all --distro debian12         # the .deb for that distro plus the AppImage
+./package.sh every                         # both .deb plus the AppImage
 ```
 
-Everything builds in a container (`packaging/Dockerfile*`, one per distro family), so the host needs nothing but
+Everything builds in a container (`packaging/Dockerfile`, Debian or Ubuntu as base), so the host needs nothing but
 Docker; the repo and a local Mumble checkout are mounted read only, only `dist/` is written. The AppImage is always built on Debian 12
-(glibc 2.36): it runs on Debian 12+, Ubuntu 22.10+, Mint 22+, current Fedora and Arch and similar. Native packages
-are built per distro against that distro's own Qt; their dependencies are derived from the linked libraries
-(`dpkg-shlibdeps`, rpmbuild's automatic requires, `pacman -Qo`). The version is Ruumble's (`bridge/package.json`).
+(glibc 2.36): it runs on Debian 12+, Ubuntu 22.10+, Mint 22+, current Fedora and Arch and similar, so only Debian
+and Ubuntu get a native package. The .deb is built against that distro's own Qt; its dependencies come from
+`dpkg-shlibdeps`. The version is Ruumble's (`bridge/package.json`).
 
 Releases: pushing a tag `v<version>` builds the AppImage in GitHub Actions (`.github/workflows/release.yml` at the
 repo root) and attaches it to the GitHub release next to the server image and the plugin.

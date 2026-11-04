@@ -109,13 +109,15 @@ real desktop (layout of view and user dock, first-start audio wizard).
 ## M7: Packages for any Linux (Kevin, 2026-11-03)
 
 - [x] `./package.sh`: builds in a container (only Docker on the host), Mumble and Ruumble mounted read only
-- [x] Native package per distro (`--distro debian12|ubuntu2404|fedora|arch`): .deb (dpkg-shlibdeps), .rpm
-      (rpmbuild requires), .pkg.tar.zst (makepkg, deps via `pacman -Qo`), plus the run-time parts; Release, stripped
+- [x] Native package per distro (`--distro debian12|ubuntu2404`): .deb (dpkg-shlibdeps) plus the run-time parts;
+      Release, stripped. Fedora .rpm and Arch package removed 2026-11-04 (Kevin: AppImage and .deb are enough; Fedora's
+      OpenSSL 4 breaks Mumble 1.6's build, upstream fix `1f00fb39b8` is only on master)
 - [x] AppImage from Debian 12 (glibc 2.36) for the widest reach
-- [ ] `.deb` for Debian 12 built and checked (contents, dependencies). 2026-11-03: first container run started and
-      stopped on purpose during the build (continue next day); nothing of M7 has produced a package yet
-- [ ] `.deb` for Ubuntu 24.04 built and installed here (`sudo apt install ./dist/...`, Kevin)
-- [ ] Fedora .rpm and Arch package built (newer Qt and GCC than Debian: may need small fixes)
+- [x] `.deb` for Debian 12 built and checked (2026-11-04, 5 min): `ruumble-desk_0.33.0+debian12_amd64.deb`, 16 MB,
+      only `/usr/bin/ruumble-desk`, desktop entry, icon and copyright; dependencies from dpkg-shlibdeps (Qt 6.4
+      WebEngine, WebChannel, libssl3, opus, poco, protobuf, ...)
+- [~] `.deb` for Ubuntu 24.04 built 2026-11-04 (8 min, same contents, `t64` library names); still open: Kevin
+      installs it here (`sudo apt install ./desk/dist/ruumble-desk_0.33.0+ubuntu2404_amd64.deb`)
 - [~] AppImage built 2026-11-04 with `./package.sh appimage` (Debian 12 container, linuxdeploy download worked there):
       `dist/Ruumble_Desk-x86_64.AppImage`, 131 MB, built against glibc 2.36 (Debian 12); contains QtWebEngineProcess, WebEngine resources,
       SQLite driver and OpenSSL TLS backend, no unresolved libraries. Fix on the way: `tools/appimage.sh` had no

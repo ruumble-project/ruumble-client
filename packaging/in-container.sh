@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs inside the packaging container (started by ./package.sh). Read only: /in/repo (this repo),
 # /in/mumble (optional). Writes only to /out (dist/ of the host) and to its own scratch dir.
-#   in-container.sh <package|appimage> <distro>   (package = the native format of the container's distro)
+#   in-container.sh <package|appimage> <distro>   (package = the .deb of the container's distro)
 set -eu
 TARGET=$1 DISTRO=$2
 S=/tmp/rd            # scratch: a copy of this repo, the Mumble work tree, the build
@@ -19,8 +19,6 @@ case "$TARGET" in
     . /etc/os-release
     case "$ID" in
       debian|ubuntu) packaging/make-deb.sh "$DISTRO" /out ;;
-      fedora) packaging/make-rpm.sh "fc${VERSION_ID}" /out ;;
-      arch) packaging/make-arch.sh "$DISTRO" /out ;;
       *) echo "no package format for $ID"; exit 1 ;;
     esac
     ;;

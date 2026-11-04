@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 # Builds Ruumble Desk packages in a container, so the host only needs Docker (any Linux).
 #
-#   ./package.sh package --distro <name>   the native package of that distro in dist/:
-#                                            debian12, ubuntu2404 (also Mint 22)  .deb   sudo apt install ./dist/<file>
-#                                            fedora (latest release)              .rpm   sudo dnf install ./dist/<file>
-#                                            arch                                 .pkg.tar.zst   sudo pacman -U dist/<file>
+#   ./package.sh package --distro <name>   the .deb for that distro in dist/: debian12, ubuntu2404 (also Mint 22)
+#                                            sudo apt install ./dist/<file>
 #   ./package.sh appimage                  dist/Ruumble_Desk-x86_64.AppImage, one file for most distros
 #                                          (built on Debian 12, glibc 2.36: Debian 12+, Ubuntu 22.10+, Fedora, Arch, ...)
+#                                          Other distros get no native package: the AppImage covers them
 #   ./package.sh all --distro <name>       both
-#   ./package.sh deb --distro <name>       same as package (kept for the Debian ones)
-#   ./package.sh every                     packages for all four distros plus the AppImage
+#   ./package.sh deb --distro <name>       same as package
+#   ./package.sh every                     both .deb plus the AppImage
 #
 # The repo (Ruumble at the root, Desk in desk/) is mounted read only, only dist/ is written. The container clones
 # Mumble from MUMBLE_URL (pins.env), or uses a local checkout named in MUMBLE_REPO (mounted read only).
@@ -25,9 +24,7 @@ base_of() { # distro -> "dockerfile base-image"
   case "$1" in
     debian12) echo "Dockerfile debian:12" ;;
     ubuntu2404) echo "Dockerfile ubuntu:24.04" ;;
-    fedora) echo "Dockerfile.fedora fedora:latest" ;;
-    arch) echo "Dockerfile.arch archlinux:latest" ;;
-    *) echo "unknown distro $1 (debian12, ubuntu2404, fedora, arch)" >&2; exit 2 ;;
+    *) echo "unknown distro $1 (debian12, ubuntu2404)" >&2; exit 2 ;;
   esac
 }
 [ "$TARGET" = deb ] && TARGET=package
@@ -53,6 +50,6 @@ case "$TARGET" in
   package) run package "$DISTRO" ;;
   appimage) run appimage debian12 ;;   # always from the oldest base, so it runs on as many systems as possible
   all) run package "$DISTRO"; run appimage debian12 ;;
-  every) for d in debian12 ubuntu2404 fedora arch; do run package "$d"; done; run appimage debian12 ;;
+  every) for d in debian12 ubuntu2404; do run package "$d"; done; run appimage debian12 ;;
 esac
 ls -la "$ROOT/dist"
