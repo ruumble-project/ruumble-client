@@ -200,6 +200,13 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       was configured at the old path and the `client/` link in `work/mumble` pointed there too. Fix: `tools/prepare.sh`
       refreshes the link every time, `tools/build.sh` runs it and configures `work/build` again when its cache names
       another source dir
+- [x] 2026-11-04 (Kevin): the AppImage crashed right after connecting to the colleague's server. Cause: Chromium
+      initialises NSS on the first HTTPS page; the AppImage bundled `libnss3`/`libnssutil3` from Debian 12 but not the
+      modules NSS loads at run time (`libsoftokn3`, `libfreeblpriv3`, `libfreebl3`, `libnssckbi`), so it took the
+      host's newer ones: "NSSUTIL_3.94 not found", FATAL in `nss_util.cc`. The local test stack is plain HTTP, so no
+      test saw it; 0.33.0's AppImage has the bug too. Fix: `tools/appimage.sh` copies the build system's modules next
+      to `libnss3.so`. Reproduced and checked headless (AppImage, host offscreen plugin, `bridgeUrl` https), Kevin
+      checked it against the colleague's server
 - [ ] Kevin: drag a person with the mouse on the desktop
 - [x] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102. Fix 2026-11-04: the room's measured width sets the class `narrow`, used only under

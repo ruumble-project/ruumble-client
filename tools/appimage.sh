@@ -52,6 +52,17 @@ export EXTRA_QT_PLUGINS="sqldrivers;tls;iconengines"
 export ARCH=x86_64
 export LDAI_OUTPUT="Ruumble_Desk-x86_64.AppImage"
 export PATH="$TOOLS:$PATH" # linuxdeploy looks for linuxdeploy-plugin-qt-*.AppImage on PATH
+# NSS (Chromium's crypto, needed for every HTTPS page) loads its modules at run time, next to libnss3.so first. They are
+# not linked, so linuxdeploy misses them; without them NSS takes the host's, which do not fit the bundled libnssutil3
+# ("NSSUTIL_3.94 not found") and the view crashes on the first HTTPS page. Copy the ones of this system under their own
+# names (libnssckbi.so may be a link to p11-kit); linuxdeploy then adds what they link.
+NSS_DIR=$(dirname "$(ldconfig -p | awk '/libnss3\.so / {print $NF; exit}')")
+mkdir -p "$APPDIR/usr/lib"
+for m in libsoftokn3 libfreeblpriv3 libfreebl3 libnssckbi; do
+  [ -e "$NSS_DIR/$m.so" ] || { echo "NSS module $m.so not found in $NSS_DIR"; exit 1; }
+  cp -L "$NSS_DIR/$m.so" "$APPDIR/usr/lib/"
+  if [ -e "$NSS_DIR/$m.chk" ]; then cp -L "$NSS_DIR/$m.chk" "$APPDIR/usr/lib/"; fi
+done
 "$TOOLS/linuxdeploy-x86_64.AppImage" --appdir "$APPDIR" \
   --executable "$APPDIR/usr/bin/ruumble-desk" \
   --desktop-file "$A/meta/ruumble-desk.desktop" \
