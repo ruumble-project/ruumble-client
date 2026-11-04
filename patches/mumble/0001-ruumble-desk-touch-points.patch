@@ -1,0 +1,275 @@
+diff --git a/src/mumble/CMakeLists.txt b/src/mumble/CMakeLists.txt
+index 1f3daa534..2bc0eba04 100644
+--- a/src/mumble/CMakeLists.txt
++++ b/src/mumble/CMakeLists.txt
+@@ -1247,3 +1247,51 @@ if(packaging AND WIN32)
+ 		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/installer/client
+ 	)
+ endif()
++
++# ---------------------------------------------------------------- Ruumble Desk (ADR-0024)
++# Ruumble's core is compiled from a Ruumble checkout by path; the Ruumble repo stays unchanged.
++option(ruumble "Build Ruumble into the client (Ruumble Desk)." ON)
++
++if(ruumble)
++	set(RUUMBLE_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../Ruumble" CACHE PATH "Ruumble checkout whose plugin core is built in")
++	get_filename_component(RUUMBLE_SOURCE_DIR "${RUUMBLE_SOURCE_DIR}" ABSOLUTE)
++	set(RUUMBLE_CORE_DIR "${RUUMBLE_SOURCE_DIR}/plugin/src")
++	if(NOT EXISTS "${RUUMBLE_CORE_DIR}/core.h")
++		message(FATAL_ERROR "Ruumble core not found in ${RUUMBLE_CORE_DIR} (set RUUMBLE_SOURCE_DIR)")
++	endif()
++
++	# the core reports the plugin version to the service, so take the one of the checkout
++	file(STRINGS "${RUUMBLE_SOURCE_DIR}/plugin/CMakeLists.txt" RUUMBLE_PROJECT_LINE REGEX "^project\\(ruumble_plugin VERSION")
++	string(REGEX MATCH "VERSION ([0-9]+\\.[0-9]+\\.[0-9]+)" _ "${RUUMBLE_PROJECT_LINE}")
++	set(RUUMBLE_CORE_VERSION "${CMAKE_MATCH_1}")
++	message(STATUS "Ruumble Desk: core ${RUUMBLE_CORE_VERSION} from ${RUUMBLE_SOURCE_DIR}")
++
++	include(FetchContent)
++	set(USE_TLS ON CACHE BOOL "" FORCE)
++	set(USE_OPEN_SSL ON CACHE BOOL "" FORCE)
++	set(USE_ZLIB OFF CACHE BOOL "" FORCE)
++	set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
++	FetchContent_Declare(ixwebsocket GIT_REPOSITORY https://github.com/machinezone/IXWebSocket.git GIT_TAG v12.0.1 GIT_SHALLOW TRUE)
++	FetchContent_MakeAvailable(ixwebsocket)
++
++	find_pkg(Qt6 COMPONENTS WebEngineWidgets WebChannel REQUIRED)
++
++	target_sources(mumble_client_object_lib PRIVATE
++		"${RUUMBLE_CORE_DIR}/core.cpp"
++		"${RUUMBLE_CORE_DIR}/config.cpp"
++		"${RUUMBLE_CORE_DIR}/discovery.cpp"
++		"${RUUMBLE_CORE_DIR}/messages.cpp"
++		"${RUUMBLE_CORE_DIR}/net.cpp"
++		"ruumble/DeskChannel.cpp"
++		"ruumble/DeskChannel.h"
++		"ruumble/QtMumbleApi.cpp"
++		"ruumble/QtMumbleApi.h"
++		"ruumble/RuumbleIntegration.cpp"
++		"ruumble/RuumbleIntegration.h"
++		"ruumble/RuumbleView.cpp"
++		"ruumble/RuumbleView.h"
++	)
++	target_include_directories(mumble_client_object_lib PRIVATE "${RUUMBLE_CORE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/ruumble")
++	target_compile_definitions(mumble_client_object_lib PUBLIC USE_RUUMBLE RUUMBLE_CORE_VERSION="${RUUMBLE_CORE_VERSION}")
++	target_link_libraries(mumble_client_object_lib PUBLIC ixwebsocket Qt6::WebEngineWidgets Qt6::WebChannel)
++endif()
+diff --git a/src/mumble/Log.cpp b/src/mumble/Log.cpp
+index e02e6a501..8f02a23ff 100644
+--- a/src/mumble/Log.cpp
++++ b/src/mumble/Log.cpp
+@@ -735,6 +735,9 @@ void Log::log(MsgType mt, const QString &console, const QString &terse, bool own
+ 	}
+ 
+ 	QString plain = QTextDocumentFragment::fromHtml(console).toPlainText();
++#ifdef USE_RUUMBLE
++	emit messageLogged(mt, plain, ownMessage);
++#endif
+ 
+ 	quint32 flags = Global::get().s.qmMessages.value(mt);
+ 
+diff --git a/src/mumble/Log.h b/src/mumble/Log.h
+index 620c063cc..8b6223463 100644
+--- a/src/mumble/Log.h
++++ b/src/mumble/Log.h
+@@ -166,6 +166,10 @@ signals:
+ 
+ 	/// Signal emitted when there was a message received whose type was configured to highlight the application
+ 	void highlightSpawned();
++#ifdef USE_RUUMBLE
++	/// Every logged message as plain text (Ruumble Desk shows the log in its own UI)
++	void messageLogged(Log::MsgType type, const QString &plain, bool ownMessage);
++#endif
+ };
+ 
+ class LogMessage {
+diff --git a/src/mumble/MainWindow.cpp b/src/mumble/MainWindow.cpp
+index 057005fd8..915e5bf6a 100644
+--- a/src/mumble/MainWindow.cpp
++++ b/src/mumble/MainWindow.cpp
+@@ -90,6 +90,10 @@
+ #	include <dbt.h>
+ #endif
+ 
++#ifdef USE_RUUMBLE
++#	include "ruumble/RuumbleIntegration.h"
++#endif
++
+ #include <algorithm>
+ #include <optional>
+ 
+@@ -507,6 +511,10 @@ void MainWindow::setupGui() {
+ 	QObject::connect(pmModel, &UserModel::channelRenamed, Global::get().pluginManager,
+ 					 &PluginManager::on_channelRenamed);
+ 
++#ifdef USE_RUUMBLE
++	ruumbleDesk = new ruumbledesk::RuumbleIntegration(this);
++#endif
++
+ 	qaAudioMute->setChecked(Global::get().s.bMute);
+ 	qaAudioDeaf->setChecked(Global::get().s.bDeaf);
+ 
+@@ -592,6 +600,12 @@ void MainWindow::setupGui() {
+ }
+ 
+ void MainWindow::updateWindowTitle() {
++#ifdef USE_RUUMBLE
++	if (ruumbleDesk) {
++		ruumbleDesk->updateWindowTitle();
++		return;
++	}
++#endif
+ 	QString title;
+ 	if (Global::get().s.bMinimalView) {
+ 		title = tr("Mumble - Minimal View");
+@@ -1259,6 +1273,11 @@ static void recreateServerHandler() {
+ 	// In order for that to work it is ESSENTIAL to use a DIRECT CONNECTION!
+ 	Global::get().pluginManager->connect(sh.get(), &ServerHandler::aboutToDisconnect, Global::get().pluginManager,
+ 										 &PluginManager::on_serverDisconnected, Qt::DirectConnection);
++#ifdef USE_RUUMBLE
++	if (Global::get().mw && Global::get().mw->ruumbleDesk) {
++		Global::get().mw->ruumbleDesk->attachServerHandler(sh.get());
++	}
++#endif
+ }
+ 
+ void MainWindow::openUrl(const QUrl &url) {
+@@ -1592,6 +1611,13 @@ void MainWindow::setupView(bool toggle_minimize) {
+ 			qwPTTButtonWidget = nullptr;
+ 		}
+ 	}
++
++#ifdef USE_RUUMBLE
++	// Ruumble Desk: Mumble's own chrome stays hidden, the Ruumble UI hosts its functions (ADR-0024)
++	if (ruumbleDesk) {
++		ruumbleDesk->applyChrome();
++	}
++#endif
+ }
+ 
+ void MainWindow::on_qaServerConnect_triggered(bool autoconnect) {
+diff --git a/src/mumble/MainWindow.h b/src/mumble/MainWindow.h
+index 462630a48..6ee38198b 100644
+--- a/src/mumble/MainWindow.h
++++ b/src/mumble/MainWindow.h
+@@ -70,6 +70,12 @@ public:
+ 	OpenURLEvent(QUrl url);
+ };
+ 
++#ifdef USE_RUUMBLE
++namespace ruumbledesk {
++class RuumbleIntegration;
++}
++#endif
++
+ class MainWindow : public QMainWindow, public Ui::MainWindow {
+ 	friend class UserModel;
+ 
+@@ -78,6 +84,9 @@ private:
+ 	Q_DISABLE_COPY(MainWindow)
+ public:
+ 	UserModel *pmModel;
++#ifdef USE_RUUMBLE
++	ruumbledesk::RuumbleIntegration *ruumbleDesk = nullptr;
++#endif
+ 	QMenu *qmUser;
+ 	QMenu *qmChannel;
+ 	QMenu *qmListener;
+diff --git a/src/mumble/PluginManager.cpp b/src/mumble/PluginManager.cpp
+index ad30270dd..541978470 100644
+--- a/src/mumble/PluginManager.cpp
++++ b/src/mumble/PluginManager.cpp
+@@ -298,6 +298,14 @@ void PluginManager::rescanPlugins() {
+ 
+ 					// if this code block is reached, the plugin was instantiated successfully so we can add it to the
+ 					// map
++#ifdef USE_RUUMBLE
++					if (p->getName() == QLatin1String("Ruumble")) {
++						Log::logOrDefer(Log::Information,
++										tr("Ignoring the Ruumble plugin \"%1\": Ruumble is built in.")
++											.arg(currentInfo.absoluteFilePath()));
++						continue;
++					}
++#endif
+ 					m_pluginHashMap.insert(p->getID(), p);
+ 				} catch (const PluginError &e) {
+ 					// If an exception is thrown, this library does not represent a proper plugin
+diff --git a/src/mumble/main.cpp b/src/mumble/main.cpp
+index 3ab90d082..3a0d7861d 100644
+--- a/src/mumble/main.cpp
++++ b/src/mumble/main.cpp
+@@ -72,6 +72,12 @@
+ #include <spdlog/sinks/qt_sinks.h>
+ #include <spdlog/sinks/rotating_file_sink.h>
+ 
++#ifdef USE_RUUMBLE
++#	define RPC_NAME "RuumbleDesk"
++#else
++#	define RPC_NAME "Mumble"
++#endif
++
+ #ifdef USE_DBUS
+ #	include <QtDBus/QDBusInterface>
+ #endif
+@@ -391,13 +397,25 @@ int main(int argc, char **argv) {
+ #endif
+ 
+ 	// Initialize application object.
++#ifdef USE_RUUMBLE
++	// Ruumble Desk: own settings, data and plugin dirs, never those of the official client (ADR-0024 D5, D6)
++	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts); // required by Qt WebEngine
++	MumbleApplication a(argc, argv);
++	a.setApplicationName(QLatin1String("Ruumble Desk"));
++	a.setOrganizationName(QLatin1String("Ruumble"));
++#else
+ 	MumbleApplication a(argc, argv);
+ 	a.setApplicationName(QLatin1String("Mumble"));
+ 	a.setOrganizationName(QLatin1String("Mumble"));
++#endif
+ 	a.setOrganizationDomain(QLatin1String("mumble.info"));
+ 	a.setQuitOnLastWindowClosed(false);
+ 
++#ifdef USE_RUUMBLE
++	a.setDesktopFileName("ruumble-desk"); // own taskbar entry and icon, not grouped with the official Mumble
++#else
+ 	a.setDesktopFileName("info.mumble.Mumble");
++#endif
+ 
+ #ifdef Q_OS_WIN
+ 	a.installNativeEventFilter(&a);
+@@ -572,7 +590,7 @@ int main(int argc, char **argv) {
+ 		QMap< QString, QVariant > param;
+ 		QString rpcCommand = QString::fromStdString(*options.rpcCommand);
+ 		param.insert(rpcCommand, rpcCommand);
+-		sent = SocketRPC::send(QLatin1String("Mumble"), QLatin1String("self"), param);
++		sent = SocketRPC::send(QLatin1String(RPC_NAME), QLatin1String("self"), param);
+ 		if (sent) {
+ 			return 0;
+ 		} else {
+@@ -594,7 +612,7 @@ int main(int argc, char **argv) {
+ 			QDBusMessage reply = qdbi.call(QLatin1String("openUrl"), QLatin1String(url.toEncoded()));
+ 			sent               = (reply.type() == QDBusMessage::ReplyMessage);
+ #else
+-			sent = SocketRPC::send(QLatin1String("Mumble"), QLatin1String("url"), param);
++			sent = SocketRPC::send(QLatin1String(RPC_NAME), QLatin1String("url"), param);
+ #endif
+ 			if (sent)
+ 				return 0;
+@@ -607,7 +625,7 @@ int main(int argc, char **argv) {
+ 			QDBusMessage reply = qdbi.call(QLatin1String("focus"));
+ 			sent               = (reply.type() == QDBusMessage::ReplyMessage);
+ #else
+-			sent = SocketRPC::send(QLatin1String("Mumble"), QLatin1String("focus"));
++			sent = SocketRPC::send(QLatin1String(RPC_NAME), QLatin1String("focus"));
+ #endif
+ 			if (sent)
+ 				return 0;
+@@ -805,7 +823,7 @@ int main(int argc, char **argv) {
+ 	QDBusConnection::sessionBus().registerService(QLatin1String("net.sourceforge.mumble.mumble"));
+ #endif
+ 
+-	SocketRPC *srpc = new SocketRPC(QLatin1String("Mumble"));
++	SocketRPC *srpc = new SocketRPC(QLatin1String(RPC_NAME));
+ 
+ 	Global::get().l->log(Log::Information, MainWindow::tr("Welcome to Mumble."));
+ 
