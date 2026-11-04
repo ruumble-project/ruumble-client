@@ -121,7 +121,7 @@ real desktop (layout of view and user dock, first-start audio wizard).
 ## M8: Ruumble moves into this repo (Kevin, 2026-11-04, agreed with Bert)
 
 Goal: nothing depends on `Skrrytch/Ruumble` any more, neither the build nor the server image; that repo could be
-deleted. Done on the local branch `merge-ruumble`, not pushed yet.
+deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kevin).
 
 - [x] Desk moved into `desk/`, Ruumble merged at the repo root with its full history (`3cc31c2` = v0.32.1, 235
       commits, without Bert's tags so no old release runs again); LICENSE names Bert Speckels and Kevin Messerschmidt
@@ -137,9 +137,10 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
       deploy/Dockerfile .` ok, `./build.sh` ok (core 0.5.0 from the repo root), headless run connects, pairs and
       shows the Desk panel button, `MUMBLE_REPO=/nonexistent desk/package.sh appimage` ok (Mumble cloned from
       GitHub as in CI, 5.5 min). Web e2e (Playwright) 106 passed. Not yet run on GitHub Actions: a manual dry run of `release.yml` would check that
-- [ ] Kevin: push `merge-ruumble` to `main`; on GitHub enable Pages (source: GitHub Actions), keep issues on
-      (release watch opens them), after the first release make the GHCR package `ruumble` public
-- [ ] First release from this repo (`tools/release.sh 0.33.0`, tag `v0.33.0`): image, plugin, AppImage
+- [x] Pushed `merge-ruumble` to `main` (2026-11-04); Pages dropped (Kevin)
+- [ ] Kevin: keep issues on (release watch opens them), after the first release make the GHCR package `ruumble` public
+- [~] First release from this repo (`tools/release.sh 0.33.0`, tag `v0.33.0`): image, plugin, AppImage. Release commit
+      pushed 2026-11-04; next: CI green, dry run of `release.yml` (AppImage job never ran on Actions), then the tag
 - [x] Mumble updates (Kevin, 2026-11-04: no API key on GitHub, run by hand here): `desk/tools/update-mumble.sh [tag]`
       (interface files, pin, full clone, 3-way merge of the patch, build, export) and the Claude Code skill
       `.claude/skills/update-all` ("Update alles": runs it, fixes conflicts, all checks, report). The weekly
