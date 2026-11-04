@@ -38,7 +38,8 @@ public:
 	QString version() const;
 	QString server() const { return m_server; }
 
-	Q_INVOKABLE QVariantList history() const;
+	/** also tells the integration that the page has the Desk panel (panelSeen) */
+	Q_INVOKABLE QVariantList history();
 	Q_INVOKABLE bool sendMessage(const QString &text);
 	Q_INVOKABLE void openSettings();
 	Q_INVOKABLE void openConnect();
@@ -53,6 +54,8 @@ public:
 signals:
 	void logged(const QVariantMap &entry);
 	void serverChanged();
+	/** the page asked for the log: it has the Desk panel (web UI 0.33.0 or newer) */
+	void panelSeen();
 
 private:
 	void attachLog();

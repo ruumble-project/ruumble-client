@@ -129,6 +129,24 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 		QObject::connect(commaKey, &QShortcut::activated, mw, [mw] { mw->on_qaConfigDialog_triggered(); });
 	}
 	QObject::connect(m_view, &QWebEngineView::titleChanged, this, &RuumbleIntegration::updateWindowTitle);
+	// an older service's web UI has no Desk panel and so no log or chat: then Mumble's own docks are shown
+	QObject::connect(m_desk, &DeskChannel::panelSeen, this, [this] {
+		m_panelSeen = true;
+		if (!m_logChosen && m_logVisible) {
+			setLogVisible(false);
+		}
+	});
+	QObject::connect(m_view, &QWebEngineView::loadStarted, this, [this] { m_panelSeen = false; });
+	QObject::connect(m_view, &QWebEngineView::loadFinished, this, [this](bool ok) {
+		if (!ok || !m_view->showsService()) {
+			return;
+		}
+		QTimer::singleShot(4000, this, [this] {
+			if (!m_logChosen && !m_panelSeen && m_view->showsService()) {
+				setLogVisible(true);
+			}
+		});
+	});
 	QObject::connect(m_view, &QWebEngineView::iconChanged, mw, [mw](const QIcon &icon) {
 		if (!icon.isNull()) {
 			mw->setWindowIcon(icon);
@@ -235,8 +253,8 @@ void RuumbleIntegration::attachServerHandler(ServerHandler *sh) {
 void RuumbleIntegration::applyChrome() {
 	m_mw->menuBar()->setVisible(false);
 	m_mw->qtIconToolbar->setVisible(false);
-	m_mw->qdwLog->setVisible(false);
-	m_mw->qdwChat->setVisible(false);
+	m_mw->qdwLog->setVisible(m_logVisible);
+	m_mw->qdwChat->setVisible(m_logVisible);
 	m_mw->qdwMinimalViewNote->setVisible(false);
 	m_usersDock->setVisible(m_userListVisible);
 }
@@ -244,6 +262,13 @@ void RuumbleIntegration::applyChrome() {
 void RuumbleIntegration::setUserListVisible(bool visible) {
 	m_userListVisible = visible;
 	m_usersDock->setVisible(visible);
+}
+
+void RuumbleIntegration::setLogVisible(bool visible) {
+	m_logVisible = visible;
+	qInfo("Ruumble Desk: Mumble log and chat %s", visible ? "shown" : "hidden");
+	m_mw->qdwLog->setVisible(visible);
+	m_mw->qdwChat->setVisible(visible);
 }
 
 void RuumbleIntegration::showMumbleMenu(const QPoint &viewPos) {
@@ -263,6 +288,13 @@ void RuumbleIntegration::showMumbleMenu(const QPoint &viewPos) {
 	users->setCheckable(true);
 	users->setChecked(m_userListVisible);
 	QObject::connect(users, &QAction::toggled, this, &RuumbleIntegration::setUserListVisible);
+	QAction *log = m_mumbleMenu->addAction(tr("Mumble log and chat"));
+	log->setCheckable(true);
+	log->setChecked(m_logVisible);
+	QObject::connect(log, &QAction::toggled, this, [this](bool on) {
+		m_logChosen = true;
+		setLogVisible(on);
+	});
 	QStringList titles;
 	for (QAction *action : m_mumbleMenu->actions()) {
 		if (action->menu()) {

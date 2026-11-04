@@ -26,7 +26,8 @@ Works well **on this machine**: phases 0 and 1 of the ADR plus "Ruumble UI as ho
 - `client/RuumbleView`: the Ruumble web UI from the service is the whole window (QWebEngineView, persistent profile,
   pairing link opens in the view).
 - `client/RuumbleIntegration`: hides Mumble's menu bar, toolbar and docks; Mumble's menus stay reachable as a native
-  popup (F10, panel, user menu), the user list as an optional dock, settings with Ctrl+,.
+  popup (F10, panel, user menu), the user list and Mumble's log and chat as optional docks (log and chat shown by
+  themselves when the page has no Desk panel, i.e. an older service), settings with Ctrl+,.
 - `client/DeskChannel`: object `desk` over QWebChannel (contract in `DeskChannel.h`), used by the web part in
   `../web/src/lib/desk/` and `../web/src/lib/ui/desk/DeskPanel.svelte`. Keep both sides in sync.
 

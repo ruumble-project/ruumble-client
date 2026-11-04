@@ -165,6 +165,10 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
       client's `audio` section (without its mute/deaf state) and its shortcuts once; backup
       `mumble_settings.json.before-mumble-import`, marker `mumble-settings-imported` in `~/.config/Ruumble/Ruumble Desk/`.
       Existing Desk installs get it on their next start. Checked in an isolated home
+- [x] 2026-11-04 (Kevin): no Mumble chat on the colleague's server. Cause: log and chat live in the Desk panel of
+      the web UI, which an older service (0.32.1) does not have, and Desk hides Mumble's own docks. Fix: when the
+      service's page has not asked `desk.history()` 4 s after loading, Desk shows Mumble's log and chat docks; the
+      Mumble menu has "Mumble log and chat" to switch them by hand. Checked against the 0.32.1 and the current web UI
 - [ ] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102; harmless at normal widths, no fallback yet
 

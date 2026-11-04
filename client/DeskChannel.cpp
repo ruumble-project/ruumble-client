@@ -75,11 +75,12 @@ void DeskChannel::onLogged(Log::MsgType type, const QString &plain, bool own) {
 	emit logged(entry);
 }
 
-QVariantList DeskChannel::history() const {
+QVariantList DeskChannel::history() {
 	QVariantList list;
 	if (!m_allowed()) {
 		return list;
 	}
+	emit panelSeen();
 	for (const QVariantMap &entry : m_history) {
 		list.append(entry);
 	}

@@ -48,6 +48,11 @@ public:
 	void showMumbleMenu(const QPoint &viewPos);
 	/** Mumble's user tree as a window of its own: channel and user administration via its context menu */
 	void setUserListVisible(bool visible);
+	/**
+	 * Mumble's own log and chat as docks. Shown by itself when the service's web UI has no Desk panel (an older
+	 * Ruumble service), so there is always a chat; the Mumble menu switches it by hand.
+	 */
+	void setLogVisible(bool visible);
 
 	/** name of the plugin that the client must not load next to the built-in core */
 	static QString externalPluginName() { return QStringLiteral("Ruumble"); }
@@ -76,6 +81,9 @@ private:
 	QDockWidget *m_usersDock;
 	QMenu *m_mumbleMenu = nullptr;
 	bool m_userListVisible = false;
+	bool m_logVisible = false;
+	bool m_logChosen = false; // switched by hand in the Mumble menu: no automatic change any more
+	bool m_panelSeen = false; // the current page asked for the log (Desk panel)
 	std::unique_ptr< QtMumbleApi > m_api;
 	std::unique_ptr< ruumble::WebSocketTransport > m_socket;
 	std::unique_ptr< ObservingTransport > m_transport;
