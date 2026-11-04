@@ -139,8 +139,11 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       GitHub as in CI, 5.5 min). Web e2e (Playwright) 106 passed. Not yet run on GitHub Actions: a manual dry run of `release.yml` would check that
 - [x] Pushed `merge-ruumble` to `main` (2026-11-04); Pages dropped (Kevin)
 - [ ] Kevin: keep issues on (release watch opens them), after the first release make the GHCR package `ruumble` public
-- [~] First release from this repo (`tools/release.sh 0.33.0`, tag `v0.33.0`): image, plugin, AppImage. Release commit
-      pushed 2026-11-04; next: CI green, dry run of `release.yml` (AppImage job never ran on Actions), then the tag
+- [x] First release from this repo, v0.33.0 (2026-11-04): image `ghcr.io/kevinwebman/ruumble:0.33.0` (also `0.33`,
+      `latest`), plugin, `Ruumble_Desk-0.33.0-x86_64.AppImage`. The AppImage job ran on Actions for the first time and
+      passed; "Create the GitHub release" failed once on GitHub errors (asset uploaded twice, then HTTP 502), "Re-run
+      failed jobs" fixed it without a new tag
+- [ ] Kevin: GHCR package `ruumble` public; the colleague switches his image line to `ghcr.io/kevinwebman/ruumble`
 - [x] Mumble updates (Kevin, 2026-11-04: no API key on GitHub, run by hand here): `desk/tools/update-mumble.sh [tag]`
       (interface files, pin, full clone, 3-way merge of the patch, build, export) and the Claude Code skill
       `.claude/skills/update-all` ("Update alles": runs it, fixes conflicts, all checks, report). The weekly
