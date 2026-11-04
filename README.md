@@ -15,11 +15,12 @@ in Claude Code: the skill `.claude/skills/update-all` runs it, fixes conflicts a
 desk/
   pins.env                 Mumble tag that is built
   client/                  Ruumble Desk sources (linked into work/mumble/src/mumble/ruumble)
-  patches/mumble/          touch points in Mumble files (all under #ifdef USE_RUUMBLE) + CMake block
+  patches/mumble/          touch points in Mumble files (all under #ifdef USE_RUUMBLE) + CMake block,
+                           listed in docs/touch-points.md
   tools/                   prepare, build, run, export-patches, appimage
   packaging/               container builds for the AppImage and the native packages
   test/                    local test stack and headless tests (see test/README.md)
-  docs/                    ADR draft
+  docs/                    ADR draft, touch points
   ROADMAP.md               progress, ticked off as it goes
 ```
 

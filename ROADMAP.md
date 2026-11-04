@@ -85,11 +85,15 @@ real desktop (layout of view and user dock, first-start audio wizard).
       Mumble's dock arrangement, only the window geometry; the user tree is taken out with `takeCentralWidget`
 
 
-- [ ] The core logs "Hover once over the top channel ..." on the first pending description,
-      although Ruumble Desk fetches the text itself a moment later (cosmetic, needs a core option in Ruumble)
-- [ ] `?embedded` handling in the web UI (needs a change in the Ruumble repo, owner decision)
+- [x] The core logs "Hover once over the top channel ..." on the first pending description,
+      although Ruumble Desk fetches the text itself a moment later. Fix 2026-11-04: core setting `hoverHint`
+      (default on for the plugin), Desk turns it off; doctest for both
+- [x] `?embedded` handling in the web UI (2026-11-04): no URL flag needed, the web UI knows Desk by its `desk` object.
+      Inside Desk the "not paired" and "Mumble offline" screens drop the plugin download and install steps, say that
+      Desk pairs itself, and offline offer "Connect to a server" (`desk.openConnect`). Tests: `web/e2e/desk.spec.ts`
+      (fake QWebChannel), i18n in `web/test/desk.test.ts`
 - [ ] Desktop entry and icon for the local build
-- [ ] Touch points listed as a patch overview (basis for a later R2 patch stack)
+- [x] Touch points listed as a patch overview (basis for a later R2 patch stack): `docs/touch-points.md` (2026-11-04)
 
 ## M6: Program and AppImage (Kevin, 2026-11-03)
 
@@ -189,6 +193,10 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       official client, which left Kevin's work session for the local test server (about 11 s). Fix in
       `patches/mumble` (`main.cpp`): Desk calls and registers `net.sourceforge.mumble.ruumbledesk`. Checked: the
       session bus lists the Desk name, Desk starts as its own process
+- [x] 2026-11-04: after the repo moved (`Ruumumble/ruumble-desk` to `ruumble-desk`) `./build.sh` failed: `work/build`
+      was configured at the old path and the `client/` link in `work/mumble` pointed there too. Fix: `tools/prepare.sh`
+      refreshes the link every time, `tools/build.sh` runs it and configures `work/build` again when its cache names
+      another source dir
 - [ ] Kevin: drag a person with the mouse on the desktop
 - [x] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
       Chromium 102. Fix 2026-11-04: the room's measured width sets the class `narrow`, used only under

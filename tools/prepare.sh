@@ -18,8 +18,9 @@ if [ ! -d "$WM/.git" ]; then
   fi
   git -C "$WM" submodule update --init --recursive -q
   git -C "$WM" apply --whitespace=nowarn "$ROOT"/patches/mumble/*.patch
-  ln -sfn "$ROOT/client" "$WM/src/mumble/ruumble"
 else
   echo "== work/mumble exists, left as it is"
 fi
+# always, so a moved repo does not leave the work tree pointing at the old place
+ln -sfn "$ROOT/client" "$WM/src/mumble/ruumble"
 echo "ready: tools/build.sh"
