@@ -180,6 +180,7 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 	settings.locale   = ruumble::localeFromEnv(std::getenv("LC_ALL"), std::getenv("LC_MESSAGES"), lang ? lang : "");
 	settings.autoOpen = true; // the link opens in the own view, there is no browser to bother
 	settings.bridgeUrl = config().bridgeUrl;
+	settings.hoverHint = false; // QtMumbleApi requests the root description itself, nobody has to hover
 
 	m_core = std::make_unique< ruumble::Core >(
 		*m_api, *m_transport, settings,
