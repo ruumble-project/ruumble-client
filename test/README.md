@@ -4,8 +4,10 @@
 - `run-desk.sh <Name> [fresh]`: Ruumble Desk headless (offscreen) in an isolated HOME under `.work/`,
   connects as `<Name>`; WebEngine DevTools on 127.0.0.1:9333 (`DEVTOOLS_PORT`). Never touches your real settings.
   `DESK_BRIDGE_URL=http://127.0.0.1:64080` sets a fixed service address instead of discovery.
-- `cdp.mjs shot <png>` / `cdp.mjs eval '<js>'`: look into and drive the embedded view (raw CDP;
-  Playwright's `connectOverCDP` does not work with QtWebEngine).
+- `cdp.mjs shot <png>` / `cdp.mjs eval '<js>'` / `cdp.mjs click <x> <y>`: look into and drive the embedded view (raw CDP;
+  Playwright's `connectOverCDP` does not work with QtWebEngine). `click` is a real, trusted mouse click: needed for
+  light dismiss of popovers and anything else that ignores synthetic events.
+- The engine is Chromium 102 (Qt WebEngine 6.4): `cdp.mjs eval "navigator.userAgent"`. The web UI must work there.
 - `click.sh '<label prefix>'`: clicks a button by aria-label. Rooms are entered by **double-click**
   (single click selects):
 

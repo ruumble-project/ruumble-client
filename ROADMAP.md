@@ -147,6 +147,17 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
 - [x] Working mode like Bert's (Kevin, 2026-11-04): commit and push directly to `main`, Bert joins as collaborator;
       `Skrrytch/Ruumble` will probably be deleted once this repo runs on its own
 
+## Bugs
+
+- [x] 2026-11-04 (Kevin): things showing up at the right edge, board not working right. Cause: Desk's engine is
+      Chromium 102 (Qt 6.4), the web UI used the popover API (Chrome 114), `color-mix()` (111) and container units
+      (105). Fixed in the web UI: popover polyfill loaded only where missing, fallbacks, build target `chrome102`.
+      Checked headless in Desk: person card placed over the avatar, room description opens, closes on a click beside
+      it (trusted click, `cdp.mjs click`), board light and posting works; web e2e unchanged. Takes effect where the
+      service serves the new web UI, i.e. the colleague's server only after the first release from this repo
+- [ ] Container queries in room labels (`SpaceButton.svelte`, compact labels in narrow rooms) are ignored in
+      Chromium 102; harmless at normal widths, no fallback yet
+
 ## Later, outside this pilot
 
 - Phase 2: immediate refusal signal from `msgPermissionDenied` (upstream candidate)
