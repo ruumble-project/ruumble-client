@@ -6,7 +6,6 @@ set -eu
 HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HERE/../tools/common.sh"; source "$HERE/desktop-entry.sh"; source "$HERE/stage.sh"
 LABEL=$1 OUT=$2
-VERSION="$(cat "$ROOT/packaging/VERSION")"
 A="$W/arch"
 rm -rf "$A" && mkdir -p "$A/stage"
 stage_files "$A/stage"
@@ -18,7 +17,7 @@ pkgver=$VERSION
 pkgrel=1
 pkgdesc="$DESCRIPTION_SHORT"
 arch=(x86_64)
-url="https://github.com/Skrrytch/Ruumble"
+url="https://github.com/KevinWebman/Ruumble-Desk"
 license=(BSD-3-Clause LGPL-3.0-only)
 depends=($(echo $DEPS | tr ' ' '\n' | sort -u | tr '\n' ' '))
 optdepends=('pipewire-pulse: audio through PipeWire')

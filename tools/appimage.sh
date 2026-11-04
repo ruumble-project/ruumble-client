@@ -29,7 +29,7 @@ fetch linuxdeploy-plugin-qt-x86_64.AppImage \
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$A/meta"
 install -m 755 "$WB/mumble" "$APPDIR/usr/bin/ruumble-desk"
-install -m 644 "$WR/web/public/icon.svg" "$A/meta/ruumble-desk.svg"
+install -m 644 "$RU/web/public/icon.svg" "$A/meta/ruumble-desk.svg"
 cat > "$A/meta/ruumble-desk.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application

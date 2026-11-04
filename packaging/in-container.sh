@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-# Runs inside the packaging container (started by ./package.sh). Read only: /in/ruumble-desk, /in/mumble,
-# /in/Ruumble. Writes only to /out (dist/ of the host) and to its own scratch dir.
+# Runs inside the packaging container (started by ./package.sh). Read only: /in/repo (this repo),
+# /in/mumble (optional). Writes only to /out (dist/ of the host) and to its own scratch dir.
 #   in-container.sh <package|appimage> <distro>   (package = the native format of the container's distro)
 set -eu
 TARGET=$1 DISTRO=$2
-S=/tmp/rd            # scratch: a copy of this repo, the work trees, the build
-rm -rf "$S" && mkdir -p "$S/src"
-(cd /in/ruumble-desk && tar --exclude=./work --exclude=./dist --exclude=./test/.work -cf - .) | (cd "$S/src" && tar -xf -)
-# pins.env names ../mumble and ../Ruumble: put the read-only mounts there
-ln -sfn /in/mumble "$S/mumble"
-ln -sfn /in/Ruumble "$S/Ruumble"
-sed -i 's|^MUMBLE_REPO=.*|MUMBLE_REPO=../mumble|; s|^RUUMBLE_REPO=.*|RUUMBLE_REPO=../Ruumble|' "$S/src/pins.env"
+S=/tmp/rd            # scratch: a copy of this repo, the Mumble work tree, the build
+rm -rf "$S" && mkdir -p "$S/repo"
+(cd /in/repo && tar --exclude=./.git --exclude=node_modules --exclude=./desk/work \
+  --exclude=./desk/dist --exclude=./desk/test/.work -cf - .) | (cd "$S/repo" && tar -xf -)
+# pins.env names ../../mumble (seen from desk/): put the read-only mount there if there is one
+[ -d /in/mumble ] && ln -sfn /in/mumble "$S/mumble"
 git config --global --add safe.directory '*'
 
-cd "$S/src"
+cd "$S/repo/desk"
 tools/prepare.sh
 BUILD_TYPE=Release tools/build.sh
 

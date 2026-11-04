@@ -7,7 +7,7 @@
 #   ./build.sh --appimage   also dist/Ruumble_Desk-x86_64.AppImage (one file for other Linux machines, tools/appimage.sh)
 #
 # The program uses the Qt libraries of this system (build dependencies: CLAUDE.md), so it runs here, not on any
-# machine. Mumble and Ruumble are only read: tools/prepare.sh clones them into work/.
+# machine. Mumble is only read: tools/prepare.sh clones it into work/; Ruumble is the repo root.
 set -eu
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 DIST="$ROOT/dist"
@@ -33,7 +33,7 @@ esac
 # dist/: the program, its icon and a desktop entry pointing at it
 mkdir -p "$DIST"
 install -m 755 "$ROOT/work/build/mumble" "$DIST/ruumble-desk"
-install -m 644 "$ROOT/work/Ruumble/web/public/icon.svg" "$DIST/ruumble-desk.svg"
+install -m 644 "$ROOT/../web/public/icon.svg" "$DIST/ruumble-desk.svg"
 cat > "$DIST/ruumble-desk.desktop" <<EOF
 [Desktop Entry]
 Type=Application

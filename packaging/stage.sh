@@ -4,7 +4,7 @@ stage_files() {
   mkdir -p "$P/usr/bin" "$P/usr/share/applications" "$P/usr/share/icons/hicolor/scalable/apps" "$P/usr/share/licenses/ruumble-desk"
   install -m 755 "$WB/mumble" "$P/usr/bin/ruumble-desk"
   strip --strip-unneeded "$P/usr/bin/ruumble-desk"
-  install -m 644 "$WR/web/public/icon.svg" "$P/usr/share/icons/hicolor/scalable/apps/ruumble-desk.svg"
+  install -m 644 "$RU/web/public/icon.svg" "$P/usr/share/icons/hicolor/scalable/apps/ruumble-desk.svg"
   desktop_entry > "$P/usr/share/applications/ruumble-desk.desktop"
   desktop-file-validate "$P/usr/share/applications/ruumble-desk.desktop"
   cat > "$P/usr/share/licenses/ruumble-desk/NOTICE" <<'COPY'

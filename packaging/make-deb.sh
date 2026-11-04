@@ -5,7 +5,7 @@ set -eu
 HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HERE/../tools/common.sh"; source "$HERE/desktop-entry.sh"; source "$HERE/stage.sh"
 LABEL=$1 OUT=$2
-VERSION="$(cat "$ROOT/packaging/VERSION")+$LABEL"
+VERSION="$VERSION+$LABEL"
 P="$W/deb/ruumble-desk"
 rm -rf "$W/deb" && mkdir -p "$P/DEBIAN"
 stage_files "$P"
@@ -28,7 +28,7 @@ Section: sound
 Priority: optional
 Depends: $DEPS, $RUNTIME
 Recommends: pipewire-pulse | pulseaudio
-Homepage: https://github.com/Skrrytch/Ruumble
+Homepage: https://github.com/KevinWebman/Ruumble-Desk
 Description: $DESCRIPTION_SHORT
 $(echo "$DESCRIPTION_LONG" | fold -s -w 78 | sed 's/^/ /')
 CTRL

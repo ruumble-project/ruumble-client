@@ -5,7 +5,6 @@ set -eu
 HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HERE/../tools/common.sh"; source "$HERE/desktop-entry.sh"; source "$HERE/stage.sh"
 LABEL=$1 OUT=$2
-VERSION="$(cat "$ROOT/packaging/VERSION")"
 R="$W/rpm"
 rm -rf "$R" && mkdir -p "$R"/{BUILD,RPMS,SOURCES,SPECS,SRPMS,stage}
 stage_files "$R/stage"
@@ -15,7 +14,7 @@ Version:        $VERSION
 Release:        1.$LABEL
 Summary:        $DESCRIPTION_SHORT
 License:        BSD-3-Clause AND LGPL-3.0-only
-URL:            https://github.com/Skrrytch/Ruumble
+URL:            https://github.com/KevinWebman/Ruumble-Desk
 # loaded at run time, not visible as a library dependency
 Requires:       qt6-qtbase-gui qt6-qtwebengine
 Recommends:     pipewire-pulseaudio
