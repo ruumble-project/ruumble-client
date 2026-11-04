@@ -118,6 +118,29 @@ real desktop (layout of view and user dock, first-start audio wizard).
       executable bit. Still open: Kevin starts it on the desktop (WebEngine sandbox inside the AppImage)
 - [ ] Windows and macOS: not covered (other toolchains: MSVC/vcpkg, macOS bundle); separate decision
 
+## M8: Ruumble moves into this repo (Kevin, 2026-11-04, agreed with Bert)
+
+Goal: nothing depends on `Skrrytch/Ruumble` any more, neither the build nor the server image; that repo could be
+deleted. Done on the local branch `merge-ruumble`, not pushed yet.
+
+- [x] Desk moved into `desk/`, Ruumble merged at the repo root with its full history (`3cc31c2` = v0.32.1, 235
+      commits, without Bert's tags so no old release runs again); LICENSE names Bert Speckels and Kevin Messerschmidt
+- [x] Root `.gitattributes` keeps LF everywhere (`core.autocrlf=true` here checked Ruumble out with CRLF)
+- [x] Desk panel is a normal commit in `web/`, `patches/ruumble` removed
+- [x] Desk build uses the repo root as Ruumble; Mumble from `../../mumble` or, if missing, GitHub (`pins.env`
+      `MUMBLE_URL`), also in the packaging container; version follows `bridge/package.json`, `packaging/VERSION` removed
+- [x] References to `Skrrytch/Ruumble` replaced: image `ghcr.io/kevinwebman/ruumble`, demo
+      `kevinwebman.github.io/Ruumble-Desk`, compose files, docs, `tools/release.sh`, release check; history (old
+      changelog links, ADR-0009, charter) left as it was, ADR-0008 got a "current state" line
+- [x] `release.yml`: job `appimage` (desk/package.sh appimage), attached as `Ruumble_Desk-<version>-x86_64.AppImage`
+- [x] Checks 2026-11-04: root `pnpm lint && pnpm test && pnpm build` green (409 tests), `docker build -f
+      deploy/Dockerfile .` ok, `./build.sh` ok (core 0.5.0 from the repo root), headless run connects, pairs and
+      shows the Desk panel button, `MUMBLE_REPO=/nonexistent desk/package.sh appimage` ok (Mumble cloned from
+      GitHub as in CI, 5.5 min). Not yet run on GitHub Actions: a manual dry run of `release.yml` would check that
+- [ ] Kevin: push `merge-ruumble` to `main`; on GitHub enable Pages (source: GitHub Actions), keep issues on
+      (release watch opens them), after the first release make the GHCR package `ruumble` public
+- [ ] First release from this repo (`tools/release.sh 0.33.0`, tag `v0.33.0`): image, plugin, AppImage
+
 ## Later, outside this pilot
 
 - Phase 2: immediate refusal signal from `msgPermissionDenied` (upstream candidate)
@@ -133,6 +156,7 @@ real desktop (layout of view and user dock, first-start audio wizard).
 - [x] Ruumble repo back to its original state (`3cc31c2`, no changes); `../mumble` never touched
 - [~] Build from `work/` and headless check
 - [ ] Remove the old `ruumble-mumble-fork` (Kevin decides)
+- Since M8 the separate `../Ruumble` checkout and `patches/ruumble` are gone; Ruumble is the repo root.
 
 ## Notes
 

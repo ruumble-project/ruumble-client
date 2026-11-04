@@ -1,13 +1,14 @@
 # CLAUDE.md: ruumble-desk
 
-Ruumble Desk is a Mumble client with Ruumble built in (local pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
+Ruumble Desk is a Mumble client with Ruumble built in (pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
+It lives in `desk/` of the Ruumble repo: Ruumble (service, web UI, plugin) is the repo root, see `../CLAUDE.md`.
 Read `README.md` for the layout and the tools, `ROADMAP.md` for the state.
 
 ## The one rule
 
-**The original repos are never changed.** `../mumble` and `../Ruumble` are only read: `tools/prepare.sh` clones
-them into `work/` and applies `patches/`. All work happens in this repo (`client/`, `patches/`, `tools/`, `test/`,
-docs). Never commit, edit, `pnpm install` or build inside `../mumble` or `../Ruumble`; use `work/` instead.
+**Mumble is never changed.** `tools/prepare.sh` clones it (from `../../mumble` if that exists, else GitHub) into
+`work/mumble` and applies `patches/mumble`. Never commit, edit or build inside `../../mumble`; use `work/mumble`.
+The old local checkout `../../Ruumble` is not used any more; Ruumble is the root of this repo and is edited there.
 
 Kevin's rules: no commits and no pushes unless he asks (then one-line messages, no bullets, no `Co-Authored-By`);
 no em or en dashes anywhere; code, comments and docs in English.
@@ -19,18 +20,18 @@ so Kevin or the next session can continue at any point.
 
 Works well **on this machine**: phases 0 and 1 of the ADR plus "Ruumble UI as host" (Kevin's choice):
 
-- Ruumble's plugin core (`work/Ruumble/plugin/src/{core,config,discovery,messages,net}.cpp`, unchanged) is compiled
+- Ruumble's plugin core (`../plugin/src/{core,config,discovery,messages,net}.cpp`, unchanged) is compiled
   into the client; `client/QtMumbleApi` implements its `MumbleApi` on the client's own classes.
 - `client/RuumbleView`: the Ruumble web UI from the service is the whole window (QWebEngineView, persistent profile,
   pairing link opens in the view).
 - `client/RuumbleIntegration`: hides Mumble's menu bar, toolbar and docks; Mumble's menus stay reachable as a native
   popup (F10, panel, user menu), the user list as an optional dock, settings with Ctrl+,.
 - `client/DeskChannel`: object `desk` over QWebChannel (contract in `DeskChannel.h`), used by the web part in
-  `patches/ruumble` (`web/src/lib/desk/`, `web/src/lib/ui/desk/DeskPanel.svelte`). Keep both sides in sync.
+  `../web/src/lib/desk/` and `../web/src/lib/ui/desk/DeskPanel.svelte`. Keep both sides in sync.
 
 Working assumptions from the ADR (the owner said "just do it"; the ADR stays a draft): own settings dir and name
 "Ruumble Desk", UI loaded from the service URL, Mumble 1.6 only. Not in scope: phase 2, screen sharing (needs Qt
-newer than 6.4), packaging, Windows, CI.
+newer than 6.4), Windows. The AppImage is built by the release workflow at the repo root.
 
 ## Code rules
 
@@ -52,9 +53,10 @@ sudo apt install build-essential cmake ninja-build pkgconf qt6-base-dev qt6-tool
 
 ## Gotchas
 
-- After a web change in `work/Ruumble`: `test/local-stack.sh up` again; the service only serves the asset files it
-  saw at start (new hashed files get 404, the page stays empty).
-- Web checks in the work tree: `cd work/Ruumble/web && corepack pnpm lint && corepack pnpm test`.
+- After a web change: `test/local-stack.sh up` again; the service only serves the asset files it saw at start (new
+  hashed files get 404, the page stays empty).
+- Web checks at the repo root: `corepack pnpm lint && corepack pnpm test`.
+- Git: `core.autocrlf=true` on this machine; the root `.gitattributes` keeps every file LF.
 - Mumble in Docker sees the host as the Docker gateway (172.x): the local service runs with `ADDRESS_CHECK=warn`.
 - Headless tests (`test/run-desk.sh`) use an isolated HOME; Playwright cannot attach to QtWebEngine, `test/cdp.mjs`
   speaks raw CDP. Rooms are entered by double-click.
