@@ -8,8 +8,8 @@ Read `README.md` for the layout and the tools, `ROADMAP.md` for the state.
 
 **Mumble is never changed.** `tools/prepare.sh` clones it from GitHub at the tag in `pins.env` into `work/mumble`
 and applies `patches/mumble`; all Mumble work happens in `work/mumble` and goes back with `tools/export-patches.sh`.
-Ruumble is the root of this repo and is edited there. New Mumble releases arrive as a pull request from the workflow
-`mumble-release-watch.yml` at the repo root.
+Ruumble is the root of this repo and is edited there. New Mumble releases: "Update alles" runs the skill
+`../.claude/skills/update-all` (`tools/update-mumble.sh`, fixes, all checks).
 
 Work like the rest of the repo (`../CLAUDE.md`): commits go directly to `main`, no PRs, one-line commit messages; Claude
 commits and pushes only when asked. No em or en dashes anywhere; code, comments and docs in English.

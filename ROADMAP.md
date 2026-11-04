@@ -130,7 +130,7 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
 - [x] Desk build uses the repo root as Ruumble; Mumble from GitHub or a checkout in `MUMBLE_REPO` (`pins.env`
       `MUMBLE_URL`), also in the packaging container; version follows `bridge/package.json`, `packaging/VERSION` removed
 - [x] References to `Skrrytch/Ruumble` replaced: image `ghcr.io/kevinwebman/ruumble`, demo
-      `kevinwebman.github.io/Ruumble-Desk`, compose files, docs, `tools/release.sh`, release check; history (old
+      compose files (GitHub Pages demo dropped, Kevin 2026-11-04), docs, `tools/release.sh`, release check; history (old
       changelog links, ADR-0009, charter) left as it was, ADR-0008 got a "current state" line
 - [x] `release.yml`: job `appimage` (desk/package.sh appimage), attached as `Ruumble_Desk-<version>-x86_64.AppImage`
 - [x] Checks 2026-11-04: root `pnpm lint && pnpm test && pnpm build` green (409 tests), `docker build -f
@@ -140,13 +140,10 @@ deleted. Done on the local branch `merge-ruumble`, not pushed yet.
 - [ ] Kevin: push `merge-ruumble` to `main`; on GitHub enable Pages (source: GitHub Actions), keep issues on
       (release watch opens them), after the first release make the GHCR package `ruumble` public
 - [ ] First release from this repo (`tools/release.sh 0.33.0`, tag `v0.33.0`): image, plugin, AppImage
-- [x] `mumble-release-watch.yml` extended (Kevin, 2026-11-04): a new Mumble release becomes a pull request with
-      interface files, Desk pin and patch (3-way merge; Claude adapts it via `anthropics/claude-code-action` when the
-      patch or the build fails), client build and plugin tests, then CI and live tests dispatched for the branch;
-      otherwise an issue with the log. `ci.yml` got `workflow_dispatch` for that
-- [ ] Kevin: repo secret `ANTHROPIC_API_KEY`. The workflow is untested on GitHub: v1.6.870 is the latest Mumble
-      release and what we use, so a run now only says "up to date"; the first real run is the next Mumble release
-      (or a manual run with that tag). The Claude step has not run anywhere yet
+- [x] Mumble updates (Kevin, 2026-11-04: no API key on GitHub, run by hand here): `desk/tools/update-mumble.sh [tag]`
+      (interface files, pin, full clone, 3-way merge of the patch, build, export) and the Claude Code skill
+      `.claude/skills/update-all` ("Update alles": runs it, fixes conflicts, all checks, report). The weekly
+      `mumble-release-watch.yml` only reports a new release as an issue and starts the live tests, as before
 - [x] Working mode like Bert's (Kevin, 2026-11-04): commit and push directly to `main`, Bert joins as collaborator;
       `Skrrytch/Ruumble` will probably be deleted once this repo runs on its own
 

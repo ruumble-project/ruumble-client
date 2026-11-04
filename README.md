@@ -6,8 +6,10 @@ underneath (local pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
 Ruumble itself (service, web UI, plugin) is the root of this repo; this folder `desk/` holds the client. Mumble is
 **used, never changed**: `tools/prepare.sh` clones it into `work/` (git-ignored), checks out the tag from `pins.env`
 and applies `patches/mumble`. It is cloned from GitHub; `MUMBLE_REPO=<path>` uses a local checkout instead.
-New Mumble releases arrive as a pull request (`.github/workflows/mumble-release-watch.yml`): it moves the pin, applies
-the patch with a 3-way merge, lets Claude adapt it if needed (repo secret `ANTHROPIC_API_KEY`), builds and tests.
+New Mumble releases are reported as an issue (`.github/workflows/mumble-release-watch.yml`). Take one over with
+`tools/update-mumble.sh [tag]` (interface files, pin, 3-way merge of the patch, build, export; exit 3 = conflicts,
+4 = build failed, fix in `work/mumble` then `tools/build.sh && tools/export-patches.sh`), or simply say "Update alles"
+in Claude Code: the skill `.claude/skills/update-all` runs it, fixes conflicts and runs every check.
 
 ```
 desk/
