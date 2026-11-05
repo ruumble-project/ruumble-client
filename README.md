@@ -76,6 +76,43 @@ Releases: `tools/release.sh <version>` bumps `VERSION` and `CHANGELOG.md`; pushi
 AppImage, both .deb, the .rpm, the Arch package and the Windows zip in parallel in GitHub Actions (`.github/workflows/release.yml`) and attaches
 them to this repo's GitHub release.
 
+## NixOS and Nix
+
+The flake in this repo builds Ruumble Client from source (Mumble at the tag in `pins.env` with our patches, Qt 6 with
+WebEngine from nixpkgs), `x86_64-linux` and `aarch64-linux`:
+
+```sh
+nix run github:ruumble-project/ruumble-client             # try it
+nix profile install github:ruumble-project/ruumble-client # install it for your user
+```
+
+In a NixOS configuration (flake):
+
+```nix
+{
+  inputs.ruumble-client.url = "github:ruumble-project/ruumble-client";
+  outputs = { nixpkgs, ruumble-client, ... }: {
+    nixosConfigurations.<host> = nixpkgs.lib.nixosSystem {
+      modules = [
+        ruumble-client.nixosModules.default
+        { programs.ruumble-client.enable = true; }
+      ];
+    };
+  };
+}
+```
+
+Or `nixpkgs.overlays = [ ruumble-client.overlays.default ];` and then `pkgs.ruumble-client` wherever you list packages.
+The first build compiles Mumble (about 10 to 20 minutes); Qt comes from the NixOS binary cache. A release tag pins a
+version: `github:ruumble-project/ruumble-client/v0.35.0`.
+
+Without the flake, the AppImage works as well: `programs.appimage = { enable = true; binfmt = true; };` in the
+configuration, then start the downloaded file (or `appimage-run Ruumble_Client-<version>-x86_64.AppImage`).
+
+The build is `nix/package.nix`; `nix/mumble-src.json` pins the Mumble and IXWebSocket sources with their hashes.
+`tools/update-mumble.sh` moves the Mumble tag there as well; the new hash is printed by the CI job "Nix"
+(`.github/workflows/nix.yml`) or a local `nix build`.
+
 ## Windows
 
 The Windows build runs only in GitHub Actions (`.github/workflows/windows.yml`, script `packaging/windows/build.sh`):

@@ -272,3 +272,5 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       our touch points and tagged `ruumble-base` in `work/mumble`, so `tools/export-patches.sh` writes only ours
 - [x] Team workflow (ADR-0026 in ruumble-server): tickets, branches, pull requests; `docs/workflow.md`, issue and PR
       templates, skills `/ticket` and `/new-ticket`, CI on pull requests
+- [x] NixOS (Kevin, 2026-11-05): flake with package, overlay and module (`nix/package.nix`, Mumble and IXWebSocket
+      pinned in `nix/mumble-src.json`); built and started headless in the `nixos/nix` container; CI job `nix.yml`

@@ -23,7 +23,9 @@ old="$MUMBLE_REF"
 echo "== Mumble $old -> $tag"
 
 sed -i -E "s/^MUMBLE_REF=.*/MUMBLE_REF=\${MUMBLE_REF:-$tag}/" "$ROOT/pins.env"
-echo "== pins.env on $tag"
+# the Nix build fetches the same tag; its hash is unknown until Nix fetches it (CI job "Nix" prints the right one)
+sed -i -E "0,/\"rev\"/s/(\"rev\": \")[^\"]*\"/\1$tag\"/" "$ROOT/nix/mumble-src.json"
+echo "== pins.env and nix/mumble-src.json on $tag (the hash in nix/mumble-src.json still has to be updated)"
 
 rm -rf "$WM" "$WB"
 mkdir -p "$W"
