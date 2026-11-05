@@ -1,0 +1,77 @@
+From 02e13b297265146b3d03ed38635de598e61afd99 Mon Sep 17 00:00:00 2001
+From: Bert Speckels <skrrytch@speckels.net>
+Date: Thu, 5 Nov 2026 21:28:50 +0100
+Subject: [PATCH] FIX(client): Try SRV targets by priority and skip unreachable
+ addresses
+
+ServerResolver listed the SRV targets in the order their lookups finished,
+so a lower priority target was often tried first. ServerHandler only moved
+on to the next address after "connection refused" or a timeout; an address
+that failed with "Network is unreachable" (an IPv6 address without an IPv6
+route) ended the attempt, and Mumble only reconnected 10 s later.
+
+Sort the resolved SRV targets by priority, and before the TCP connection is
+up also move on after a network error, an unsupported socket operation or a
+socket access error.
+---
+ src/ServerResolver.cpp       |  7 +++++++
+ src/mumble/ServerHandler.cpp | 11 ++++++++++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/src/ServerResolver.cpp b/src/ServerResolver.cpp
+index a01b6c787..c231064ac 100644
+--- a/src/ServerResolver.cpp
++++ b/src/ServerResolver.cpp
+@@ -8,6 +8,8 @@
+ #include <QtNetwork/QDnsLookup>
+ #include <QtNetwork/QHostInfo>
+ 
++#include <algorithm>
++
+ static qint64 normalizeSrvPriority(quint16 priority, quint16 weight) {
+ 	return static_cast< qint64 >((65535U * priority) + weight);
+ }
+@@ -98,6 +100,11 @@ void ServerResolverPrivate::hostResolved(QHostInfo hostInfo) {
+ 
+ 	m_srvQueueRemain -= 1;
+ 	if (m_srvQueueRemain == 0) {
++		// The lookups finish in any order: try the targets by their SRV priority (RFC 2782), lowest first, not by
++		// whichever answer came first.
++		std::stable_sort(m_resolved.begin(), m_resolved.end(), [](ServerResolverRecord a, ServerResolverRecord b) {
++			return a.priority() < b.priority();
++		});
+ 		emit resolved();
+ 	}
+ }
+diff --git a/src/mumble/ServerHandler.cpp b/src/mumble/ServerHandler.cpp
+index b92435e43..7b11fa72f 100644
+--- a/src/mumble/ServerHandler.cpp
++++ b/src/mumble/ServerHandler.cpp
+@@ -728,6 +728,9 @@ void ServerHandler::disconnect() {
+ }
+ 
+ void ServerHandler::serverConnectionClosed(QAbstractSocket::SocketError err, const QString &reason) {
++	// The TCP connection never came up: an error now means this address cannot be used from here
++	const bool beforeConnected =
++		m_state != ServerHandlerState::TLSHandshake && m_state != ServerHandlerState::ConnectionEstablished;
+ 	changeState(ServerHandlerState::ConnectionOver);
+ 
+ 	Connection *c = cConnection.get();
+@@ -749,7 +752,13 @@ void ServerHandler::serverConnectionClosed(QAbstractSocket::SocketError err, con
+ 	// Otherwise, emit disconnect and exit with
+ 	// a normal status code.
+ 	if (!qlAddresses.isEmpty()) {
+-		if (err == QAbstractSocket::ConnectionRefusedError || err == QAbstractSocket::SocketTimeoutError) {
++		// e.g. an IPv6 address without an IPv6 route ("Network is unreachable"): the next address may well work
++		const bool addressUnusable = beforeConnected
++									 && (err == QAbstractSocket::NetworkError
++										 || err == QAbstractSocket::UnsupportedSocketOperationError
++										 || err == QAbstractSocket::SocketAccessError);
++		if (err == QAbstractSocket::ConnectionRefusedError || err == QAbstractSocket::SocketTimeoutError
++			|| addressUnusable) {
+ 			qWarning("ServerHandler: connection attempt to %s:%i failed: %s (%li); trying next server....",
+ 					 qPrintable(saTargetServer.host.toString()), static_cast< int >(saTargetServer.port),
+ 					 qPrintable(reason), static_cast< long >(err));
+-- 
+2.43.0
+

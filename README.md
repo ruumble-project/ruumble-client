@@ -79,8 +79,9 @@ Everything builds in a container (`packaging/Dockerfile` with Debian or Ubuntu a
 Docker; the repo and a local Mumble checkout are mounted read only, only `dist/` is written. The AppImage is always built on Debian 12
 (glibc 2.36): it runs on Debian 12+, Ubuntu 22.10+, Mint 22+, current Fedora and Arch and similar. Native packages
 are built against that distro's own Qt; their dependencies come from the linked libraries (`dpkg-shlibdeps`,
-rpmbuild, `pacman -Qo`). Fedora's OpenSSL 4 needs an upstream Mumble fix that is not in a Mumble release yet: it is
-kept in `patches/upstream` and applied before our touch points (`tools/prepare.sh`). They replace an installed `ruumble-desk`. The version is in `VERSION`.
+rpmbuild, `pacman -Qo`). Fixes for Mumble itself that are not in a Mumble release yet (Mumble's OpenSSL 4 build fix for Fedora, and our
+fix for SRV records with an unreachable server, meant to go upstream) are kept in `patches/upstream` and applied
+before our touch points (`tools/prepare.sh`). They replace an installed `ruumble-desk`. The version is in `VERSION`.
 
 Releases (details and when to release: [docs/releasing.md](docs/releasing.md)): `tools/release.sh <version>` bumps
 `VERSION` and `CHANGELOG.md`; pushing the tag `v<version>` builds the

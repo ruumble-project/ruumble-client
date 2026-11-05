@@ -289,3 +289,11 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
 - [x] Headless checks with the local stack (`DESK_LINK=0`, `DESK_AUTOCONNECT`, `DESK_LAST_SERVER`, `DESK_LANG`)
 - [ ] By hand on a desktop: certificate question of an unknown server during an automatic entry, the Mumble menu's
       "Mumble server list", `--hidden`
+
+## Entering with an SRV record (#14, Bert, 2026-11-05)
+
+- [x] Mumble fix in `patches/upstream/0002-srv-priority-and-unreachable-addresses.patch`: SRV targets by priority, an
+      address failing with "Network is unreachable" before connecting moves on to the next one (before: Mumble gave up
+      and reconnected after 10 s; seen with `simongrimm.de`, whose second SRV target refuses)
+- [ ] Propose the fix to Mumble upstream (a pull request at mumble-voip/mumble); remove the patch once a Mumble release
+      has it

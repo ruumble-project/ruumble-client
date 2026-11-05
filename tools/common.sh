@@ -10,8 +10,9 @@ WM="$W/mumble"     # Mumble at MUMBLE_REF + patches/mumble + client/ (symlink)
 WB="$W/build"      # build dir of the client
 VERSION="$(cat "$ROOT/VERSION")"  # Ruumble Client's own version (tools/release.sh)
 
-# Upstream Mumble fixes that are on its master but not at MUMBLE_REF (patches/upstream, e.g. the OpenSSL 4 build fix
-# Fedora needs): applied before our touch points and committed in work/mumble, tagged ruumble-base, so that
+# Fixes for Mumble itself that are not at MUMBLE_REF (patches/upstream): backports from its master (e.g. the OpenSSL 4
+# build fix Fedora needs) and our own general fixes meant to go upstream (SRV priority, ticket #14). Applied before our
+# touch points and committed in work/mumble, tagged ruumble-base, so that
 # tools/export-patches.sh writes only our own changes. A fix the Mumble tag already contains is skipped.
 apply_upstream() {
   local p applied=0
