@@ -1,0 +1,9 @@
+# Build environment for the Ruumble Client Arch Linux package (pkg.tar.zst). Sources come in read only at run time.
+ARG BASE=archlinux:latest
+FROM ${BASE}
+RUN pacman -Syu --noconfirm --needed \
+      base-devel cmake ninja git python file desktop-file-utils patchelf \
+      qt6-base qt6-tools qt6-svg qt6-webengine qt6-webchannel \
+      mesa boost openssl protobuf libcap libxi libxext libx11 alsa-lib libpulse libogg libsndfile opus \
+      poco nlohmann-json cli11 utf8cpp spdlog speexdsp \
+ && pacman -Scc --noconfirm

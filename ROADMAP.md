@@ -260,7 +260,10 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
 
 - [x] Split from the joint repo into `ruumble-project/ruumble-client` (history of `desk/` kept, now at the root);
       Ruumble is the submodule `server/` (ruumble-project/ruumble-server), ADR-0025 there
-- [x] Own version (`VERSION`, `tools/release.sh`), changelog, `release.yml` (AppImage) and Mumble release watch
+- [x] Own version (`VERSION`, `tools/release.sh`), changelog, `release.yml` and Mumble release watch
+- [x] Release builds AppImage, .deb (Debian 12, Ubuntu 24.04) and the Arch package in parallel (Kevin, 2026-11-05);
+      Arch packaging restored from before `e922259`, dependencies now only the directly linked libraries (20 packages).
+      Checked locally: all three packages built in their containers, the Arch binary finds every library
 - [x] Product name "Ruumble Client" instead of "Ruumble Desk" (Kevin, 2026-11-05); settings and data of Ruumble Desk taken
       over once on the first start (`RuumbleIntegration::takeOverDeskSettings`). Internal names stay (`desk` object,
       `RuumbleDesk` WebEngine profile, `ruumbledesk` namespace, patch file name)
