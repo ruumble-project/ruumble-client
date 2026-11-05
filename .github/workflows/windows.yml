@@ -1,7 +1,8 @@
 name: Windows
 
 # Windows build of Ruumble Client (packaging/windows/build.sh): a zip with ruumble-client.exe, its DLLs and Qt WebEngine.
-# Called by release.yml for every release; runs on its own on pushes that touch the Windows build and on demand.
+# Called by release.yml for every release; runs on its own on pull requests and pushes that touch the Windows build
+# or the client code, and on demand.
 # On failure the end of the build log is attached as an annotation, so it can be read without signing in.
 on:
   workflow_call:
@@ -11,6 +12,12 @@ on:
     paths:
       - "packaging/windows/**"
       - ".github/workflows/windows.yml"
+  pull_request:
+    paths:
+      - "packaging/windows/**"
+      - ".github/workflows/windows.yml"
+      - "client/**"
+      - "patches/**"
 
 permissions:
   contents: read

@@ -3,7 +3,7 @@
 The team flow is the same in both repositories and described once in ruumble-server:
 [docs/workflow.md](https://github.com/ruumble-project/ruumble-server/blob/main/docs/workflow.md) (decision: ADR-0026
 there). In short: ticket first, a branch `<issue>-<slug>` from `main`, one-line English commits ending with
-`(#<issue>)`, a pull request with `Closes #<issue>`, green CI, one approval, squash merge.
+`(#<issue>)`, a pull request with `Closes #<issue>`, green CI, squash merge; no approval needed inside the team.
 
 What is different here:
 
@@ -37,6 +37,15 @@ CI builds the client and the Debian 12 package on every pull request (`.github/w
   only grows.
 
 ## Working with Claude Code
+
+What every Claude instance gets from the repo, so all colleagues work the same way:
+
+- `CLAUDE.md`, section "Team and GitHub": the rules of this flow and what GitHub enforces (protected `main`, required
+  checks, squash merge, labels, who may skip the rules, Claude never does).
+- `.claude/settings.json`: shared permissions. Reading git history, tickets, pull requests and workflow runs works
+  without asking; force pushes, pushing to `main`, merging and approving are left to people (denied for Claude). Personal additions
+  go into `.claude/settings.local.json` (not committed) or `~/.claude/settings.json`.
+- `.claude/skills/`: `/ticket`, `/new-ticket`, `/update-all`.
 
 `/ticket 42` and `/new-ticket <description>` work here as in ruumble-server (skills in `.claude/skills/`); `/update-all`
 takes over a new Mumble release. They need the GitHub CLI (`gh auth login`).
