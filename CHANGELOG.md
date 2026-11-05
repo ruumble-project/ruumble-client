@@ -7,6 +7,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-11-05
+
 ### Added
 
 - Native packages in every release next to the AppImage: `.deb` for Debian 12 and for Ubuntu 24.04 / Linux Mint 22, and an Arch Linux package; all three replace an installed `ruumble-desk`
