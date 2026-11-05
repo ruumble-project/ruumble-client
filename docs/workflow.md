@@ -24,7 +24,7 @@ side merged first and compatible with released clients, then the client.
 | Mumble patch (`patches/mumble`) | edit in `work/mumble`, then `tools/export-patches.sh`; never edit the patch file by hand |
 | packaging (`packaging/`, `package.sh`) | `./package.sh package --distro <debian12, ubuntu2404, fedora or arch>` or `./package.sh appimage` |
 | Windows build (`packaging/windows/`) | push the branch: `.github/workflows/windows.yml` runs on branches named `windows*`, or start it by hand under Actions |
-| `server/` submodule | a pull request of its own: "Ruumble <version> as server/ (#<issue>)", after the server release |
+| `server/` submodule | a pull request of its own, titled "Ruumble <version> as server/", after the server release |
 
 CI builds the client and the Debian 12 package on every pull request (`.github/workflows/ci.yml`).
 
