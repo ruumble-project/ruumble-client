@@ -542,7 +542,8 @@ void CityMap::sendPing() {
 							{ QStringLiteral("users"), r.users },
 							{ QStringLiteral("maxUsers"), r.maxUsers },
 							{ QStringLiteral("answered"), r.answered },
-							{ QStringLiteral("gaveUp"), r.gaveUp } };
+							{ QStringLiteral("gaveUp"), r.gaveUp },
+							{ QStringLiteral("via"), r.via } };
 	}
 	emit pinged(out);
 }

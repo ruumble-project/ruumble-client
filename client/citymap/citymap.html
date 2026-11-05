@@ -251,7 +251,8 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
       empty: "Noch keine Adresse notiert. Mit „Adresse notieren“ legst du die erste an.",
       eName: "Bitte einen Gebäudenamen eingeben.", eHost: "Bitte eine Adresse ohne Leerzeichen eingeben.",
       ePort: "Nur Ziffern, 1 bis 65535", eUser: "Bitte einen Besuchernamen eingeben.",
-      noAnswer: "antwortet nicht", ms: "%1 ms"
+      noAnswer: "antwortet nicht", ms: "%1 ms",
+      via: "Verbindet über %1 (DNS-SRV-Eintrag, der Port der Adresse gilt dann nicht)"
     },
     en: {
       title: "Ruumble City Map", heading: "City Map", add: "Note Address", edit: "Edit Address", remove: "Remove Address",
@@ -275,7 +276,8 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
       empty: "No address noted yet. Use “Note Address” to add the first one.",
       eName: "Please enter a building name.", eHost: "Please enter an address without spaces.",
       ePort: "Numbers only, 1 to 65535", eUser: "Please enter a visitor name.",
-      noAnswer: "does not answer", ms: "%1 ms"
+      noAnswer: "does not answer", ms: "%1 ms",
+      via: "Connects via %1 (DNS SRV record, the address's port does not apply then)"
     }
   };
 
@@ -364,7 +366,7 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
       var host = document.createElement("td");
       host.className = "addr";
       host.textContent = a.port === 64738 ? a.host : a.host + ":" + a.port;
-      host.title = a.user + " @ " + a.host + ":" + a.port;
+      host.title = a.user + " @ " + a.host + ":" + a.port + (p && p.via ? "\n" + fmt(T.via, p.via) : "");
       var con = document.createElement("td");
       con.className = "c";
       con.appendChild(bars(p));

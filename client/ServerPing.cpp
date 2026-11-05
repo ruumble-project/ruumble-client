@@ -88,7 +88,19 @@ void ServerPing::tick() {
 					}
 					found->resolving = false;
 					QStringList list;
+					QStringList via;
 					for (ServerResolverRecord record : resolver->records()) {
+						QString target = record.hostname();
+						if (target.endsWith(QLatin1Char('.'))) {
+							target.chop(1);
+						}
+						// an SRV record: Mumble connects there, whatever port the address names
+						if (target.compare(found->host, Qt::CaseInsensitive) != 0 || record.port() != found->port) {
+							const QString hop = QStringLiteral("%1:%2").arg(target).arg(record.port());
+							if (!via.contains(hop)) {
+								via << hop;
+							}
+						}
 						for (const HostAddress &address : record.addresses()) {
 							found->endpoints << qMakePair(address.toAddress(), record.port());
 							list << QStringLiteral("%1 port %2").arg(address.toAddress().toString()).arg(record.port());
@@ -101,6 +113,7 @@ void ServerPing::tick() {
 						emit updated();
 						return;
 					}
+					m_results[id].via = via.join(QLatin1String(", "));
 					qInfo().noquote() << "Ruumble City Map: ping" << id << "to" << list.join(QLatin1String(", "));
 					send(*found);
 				});

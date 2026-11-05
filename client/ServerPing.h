@@ -36,6 +36,7 @@ public:
 		int maxUsers  = -1;
 		bool answered = false;
 		bool gaveUp   = false; // no answer for a while (or the name does not resolve)
+		QString via;           // a DNS SRV record sends the address elsewhere: "host:port, ..." (empty otherwise)
 	};
 	Result result(const QString &target) const { return m_results.value(target); }
 
