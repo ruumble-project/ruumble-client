@@ -122,6 +122,10 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
 .code { position: relative; }
 .code input { padding-right: 84px; }
 .code .show { position: absolute; right: 6px; bottom: 5px; border: 0; background: none; font-size: 12px; font-weight: 600; color: var(--blue-700); cursor: pointer; padding: 3px 6px; }
+.tip { position: fixed; z-index: 20; max-width: 380px; background: #1d2733; color: #fff; font-size: 14px; line-height: 1.45; padding: 8px 12px; border-radius: 6px; box-shadow: 0 6px 18px rgb(0 0 0 / .3); pointer-events: none; }
+.tip div + div { margin-top: 2px; }
+.tip .tip-head { font-weight: 700; margin-top: 6px; }
+.tip .tip-note { color: #c9d6e3; margin-top: 6px; }
 .form-f { display: flex; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--line); background: #f8fafc; border-radius: 0 0 10px 10px; }
 </style>
 </head>
@@ -223,6 +227,8 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
   </div>
 </div>
 
+<div class="tip" id="tip" role="tooltip" hidden></div>
+
 <script>
 (function () {
   "use strict";
@@ -252,7 +258,7 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
       eName: "Bitte einen Gebäudenamen eingeben.", eHost: "Bitte eine Adresse ohne Leerzeichen eingeben.",
       ePort: "Nur Ziffern, 1 bis 65535", eUser: "Bitte einen Besuchernamen eingeben.",
       noAnswer: "antwortet nicht", ms: "%1 ms",
-      via: "Verbindet über %1 (DNS-SRV-Eintrag, der Port der Adresse gilt dann nicht)"
+      viaHead: "Verbindet über:", viaNote: "Grund ist ein DNS-SRV-Eintrag des Servers. Der Port der Adresse gilt dann nicht."
     },
     en: {
       title: "Ruumble City Map", heading: "City Map", add: "Note Address", edit: "Edit Address", remove: "Remove Address",
@@ -277,7 +283,7 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
       eName: "Please enter a building name.", eHost: "Please enter an address without spaces.",
       ePort: "Numbers only, 1 to 65535", eUser: "Please enter a visitor name.",
       noAnswer: "does not answer", ms: "%1 ms",
-      via: "Connects via %1 (DNS SRV record, the address's port does not apply then)"
+      viaHead: "Connects via:", viaNote: "The server has a DNS SRV record. The address's port does not apply then."
     }
   };
 
@@ -299,6 +305,35 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
     document.title = T.title;
   }
 
+  // own tooltip: the engine's one is small and cannot be styled. lines: [[text, class], ...]
+  // key: stays the same when the list is drawn again (every ping), so an open tooltip follows the new element
+  var tipKey = null;
+  function setTip(el, lines, key) {
+    el.tipLines = lines;
+    el.dataset.tipkey = key;
+    el.addEventListener("mouseenter", function () { tipKey = key; showTip(el); });
+    el.addEventListener("mouseleave", function () { tipKey = null; hideTip(); });
+  }
+
+  function showTip(el) {
+    var tip = $("tip");
+    tip.textContent = "";
+    el.tipLines.forEach(function (l) {
+      var d = document.createElement("div");
+      d.textContent = l[0];
+      if (l[1]) d.className = l[1];
+      tip.appendChild(d);
+    });
+    tip.hidden = false;
+    var r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, innerWidth - w - 8));
+    var top = r.bottom + 6 + h > innerHeight - 8 ? r.top - h - 6 : r.bottom + 6;
+    tip.style.left = left + "px";
+    tip.style.top = Math.max(8, top) + "px";
+  }
+
+  function hideTip() { $("tip").hidden = true; }
+
   function account(id) {
     for (var i = 0; i < st.accounts.length; i++) if (st.accounts[i].id === id) return st.accounts[i];
     return null;
@@ -306,19 +341,21 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
 
   // ---------------------------------------------------------------- rendering
 
-  function bars(p) {
+  function bars(p, key) {
     var span = document.createElement("span");
     span.className = "sig";
     var filled = 0;
-    if (p && p.gaveUp) { span.className += " none"; span.title = T.noAnswer; }
+    var label = "";
+    if (p && p.gaveUp) { span.className += " none"; label = T.noAnswer; }
     else if (p && p.answered && p.ms >= 0) {
       if (p.ms < 80) { filled = 4; span.className += " good"; }
       else if (p.ms <= 200) { filled = 2; span.className += " fair"; }
       else { filled = 1; span.className += " poor"; }
-      span.title = fmt(T.ms, p.ms);
+      label = fmt(T.ms, p.ms);
     }
     span.setAttribute("role", "img");
-    span.setAttribute("aria-label", span.title || "");
+    span.setAttribute("aria-label", label);
+    if (label) setTip(span, [[label]], "con-" + key);
     for (var i = 0; i < 4; i++) {
       var b = document.createElement("i");
       if (i < filled) b.className = "f";
@@ -366,10 +403,16 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
       var host = document.createElement("td");
       host.className = "addr";
       host.textContent = a.port === 64738 ? a.host : a.host + ":" + a.port;
-      host.title = a.user + " @ " + a.host + ":" + a.port + (p && p.via ? "\n" + fmt(T.via, p.via) : "");
+      var lines = [[a.user + " @ " + a.host + ":" + a.port]];
+      if (p && p.via) {
+        lines.push([T.viaHead, "tip-head"]);
+        p.via.split(", ").forEach(function (hop) { lines.push([hop]); });
+        lines.push([T.viaNote, "tip-note"]);
+      }
+      setTip(host, lines, "host-" + a.id);
       var con = document.createElement("td");
       con.className = "c";
-      con.appendChild(bars(p));
+      con.appendChild(bars(p, a.id));
       var vis = document.createElement("td");
       vis.className = "c vis";
       vis.textContent = visitors(p);
@@ -378,6 +421,8 @@ tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
       tr.addEventListener("dblclick", function () { select(a.id, false); enter(); });
       body.appendChild(tr);
     });
+    var again = tipKey && document.querySelector('[data-tipkey="' + tipKey + '"]');
+    if (again) showTip(again); else { tipKey = null; hideTip(); }
     var has = account(selected) !== null;
     $("edit").disabled = !has;
     $("remove").disabled = !has;
