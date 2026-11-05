@@ -7,6 +7,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-11-05
+
 ### Added
 
 - Fedora: an `.rpm` for the current Fedora in every release (built with Mumble's upstream fix for OpenSSL 4, kept in `patches/upstream` until a Mumble release has it)
