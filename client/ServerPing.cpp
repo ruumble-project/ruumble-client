@@ -1,11 +1,11 @@
 #include "ServerPing.h"
 
+#include "ServerResolver.h"
 #include "Version.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QTimer>
-#include <QtNetwork/QHostInfo>
 #include <QtNetwork/QUdpSocket>
 
 namespace ruumbledesk {
@@ -76,40 +76,37 @@ void ServerPing::tick() {
 		if (t.failed) {
 			continue;
 		}
-		if (t.addresses.isEmpty()) {
-			if (t.resolving) {
-				continue;
-			}
-			QHostAddress literal;
-			if (literal.setAddress(t.host)) {
-				t.addresses << literal;
-			} else {
-				t.resolving = true;
-				QHostInfo::lookupHost(t.host, this, [this, id](const QHostInfo &info) {
+		if (t.endpoints.isEmpty()) {
+			if (!t.resolving) {
+				t.resolving              = true;
+				ServerResolver *resolver = new ServerResolver(this);
+				QObject::connect(resolver, &ServerResolver::resolved, this, [this, id, resolver] {
+					resolver->deleteLater();
 					auto found = m_targets.find(id);
 					if (found == m_targets.end()) {
 						return;
 					}
 					found->resolving = false;
-					if (info.error() != QHostInfo::NoError || info.addresses().isEmpty()) {
-						qInfo().noquote() << "Ruumble City Map: ping" << id << "- name not resolved:" << info.errorString();
-						found->failed     = true;
-						Result &r         = m_results[id];
-						r.gaveUp          = true;
+					QStringList list;
+					for (ServerResolverRecord record : resolver->records()) {
+						for (const HostAddress &address : record.addresses()) {
+							found->endpoints << qMakePair(address.toAddress(), record.port());
+							list << QStringLiteral("%1 port %2").arg(address.toAddress().toString()).arg(record.port());
+						}
+					}
+					if (found->endpoints.isEmpty()) {
+						qInfo().noquote() << "Ruumble City Map: ping" << id << "- name not resolved";
+						found->failed        = true;
+						m_results[id].gaveUp = true;
 						emit updated();
 						return;
-					}
-					// all of them: a server may answer on IPv6 only (or IPv4 only), Mumble's list pings every address too
-					found->addresses = info.addresses();
-					QStringList list;
-					for (const QHostAddress &a : found->addresses) {
-						list << a.toString();
 					}
 					qInfo().noquote() << "Ruumble City Map: ping" << id << "to" << list.join(QLatin1String(", "));
 					send(*found);
 				});
-				continue;
+				resolver->resolve(t.host, t.port);
 			}
+			continue;
 		}
 		send(t);
 		Result &r = m_results[id];
@@ -141,14 +138,14 @@ void ServerPing::send(Target &t) {
 	for (Version::full_t version : { Version::UNKNOWN, Mumble::Protocol::PROTOBUF_INTRODUCTION_VERSION }) {
 		m_encoder.setProtocolVersion(version);
 		const auto packet = m_encoder.encodePingPacket(data);
-		for (const QHostAddress &address : t.addresses) {
-			const bool v4 = address.protocol() == QAbstractSocket::IPv4Protocol;
+		for (const auto &endpoint : t.endpoints) {
+			const bool v4 = endpoint.first.protocol() == QAbstractSocket::IPv4Protocol;
 			QUdpSocket *socket = v4 ? m_socket4 : m_socket6;
 			if (v4 ? !m_bound4 : !m_bound6) {
 				continue;
 			}
 			socket->writeDatagram(reinterpret_cast< const char * >(packet.data()), static_cast< qint64 >(packet.size()),
-								  address, t.port);
+								  endpoint.first, endpoint.second);
 		}
 	}
 	if (t.firstSent < 0) {
@@ -157,16 +154,13 @@ void ServerPing::send(Target &t) {
 }
 
 bool ServerPing::matches(const Target &t, const QHostAddress &host, quint16 port) {
-	if (t.port != port) {
-		return false;
+	// a scope id "0" means none (as in Mumble's ConnectDialog::udpReply)
+	QHostAddress from(host);
+	if (from.scopeId() == QLatin1String("0")) {
+		from.setScopeId(QString());
 	}
-	for (const QHostAddress &address : t.addresses) {
-		// IPv4 answers may come as IPv4-mapped IPv6 on a dual stack socket; a scope id "0" means none (as in Mumble)
-		QHostAddress from(host);
-		if (from.scopeId() == QLatin1String("0")) {
-			from.setScopeId(QString());
-		}
-		if (address.isEqual(from, QHostAddress::TolerantConversion)) {
+	for (const auto &endpoint : t.endpoints) {
+		if (endpoint.second == port && endpoint.first.isEqual(from, QHostAddress::TolerantConversion)) {
 			return true;
 		}
 	}

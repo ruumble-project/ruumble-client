@@ -1,5 +1,6 @@
 // Ruumble Client: connection and visitors of the City Map's addresses (ticket #8).
-// The same UDP ping Mumble's own server list sends (ConnectDialog::sendPing), for a handful of addresses.
+// The same UDP ping Mumble's own server list sends (ConnectDialog::sendPing), for a handful of addresses, resolved the
+// same way (ServerResolver, so SRV records are followed).
 
 #ifndef MUMBLE_MUMBLE_RUUMBLE_SERVERPING_H_
 #define MUMBLE_MUMBLE_RUUMBLE_SERVERPING_H_
@@ -46,7 +47,9 @@ private:
 	struct Target {
 		QString host;
 		unsigned short port = 0;
-		QList< QHostAddress > addresses; // resolved: every one is pinged, IPv4 and IPv6, as Mumble's list does
+		// resolved like Mumble does (ServerResolver: a DNS SRV record _mumble._tcp first, which may point to another
+		// host and port, then the name itself); every address is pinged, IPv4 and IPv6, as Mumble's list does
+		QList< QPair< QHostAddress, quint16 > > endpoints;
 		bool resolving    = false;
 		bool failed       = false;
 		quint64 key       = 0; // hides the timestamp from the server, like Mumble does
