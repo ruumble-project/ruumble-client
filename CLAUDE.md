@@ -16,8 +16,8 @@ all checks).
 
 Team workflow (`docs/workflow.md`, ADR-0026 in ruumble-server): every change starts with a GitHub issue, gets a branch
 `<issue>-<slug>` from `main`, one-line English commits ending with `(#<issue>)`, and reaches `main` only through a pull
-request (template, `Closes #<issue>`, green CI, one approval, squash merge). Never commit to `main` directly (only the
-maintainer's release commit). Claude commits on the ticket branch and pushes or opens the pull request only when asked
+request (template, `Closes #<issue>`, green CI, squash merge; no approval needed inside the team, see "Team and
+GitHub"). Claude commits on the ticket branch and pushes or opens the pull request only when asked
 (the `/ticket` skill counts as asked; personal settings that forbid pushing win). Skills: `/ticket`, `/new-ticket`,
 `/update-all`. No em or en dashes anywhere; code, comments and docs in English.
 
@@ -72,3 +72,31 @@ sudo apt install build-essential cmake ninja-build pkgconf qt6-base-dev qt6-tool
 - Mumble in Docker sees the host as the Docker gateway (172.x): the local service runs with `ADDRESS_CHECK=warn`.
 - Headless tests (`test/run-desk.sh`) use an isolated HOME; Playwright cannot attach to QtWebEngine, `test/cdp.mjs`
   speaks raw CDP. Rooms are entered by double-click.
+
+## Team and GitHub (read before any git or gh action)
+
+Several people work on this repo, each with their own Claude Code; these rules hold for every instance, whatever the
+personal settings say about style. The full flow is `docs/workflow.md`.
+
+- **Start of a session**: `gh auth status` (the skills need the GitHub CLI; if it is not logged in, ask the person to
+  run `gh auth login`), `git status`, and which branch is checked out. Work on `main` only to pull it.
+- **One ticket, one branch**: `<issue>-<slug>` from an up-to-date `main`. No ticket yet: offer `/new-ticket` first.
+  Skills: `/ticket <n>` works an issue to a pull request, `/new-ticket` writes one.
+- **`main` is protected** by a ruleset: no force pushes, no deletion, merges through a pull request with the
+  required checks green (`Build (Debian 12 package)`; the Windows build (`windows.yml`) runs on
+  pull requests that touch `client/`, `patches/` or `packaging/windows/` and on branches named `windows*`, and must be
+  green there too). Only squash merge is allowed: the pull
+  request title becomes the one commit on `main` (body left empty), so the title is one line in English ending with
+  `(#<issue>)`. Merged branches are deleted automatically.
+- **Who the rules bind**: the team (roles admin, maintain, write: Kevin, Simon, Bert) may bypass the ruleset: no
+  approval is needed, authors merge their own pull requests, small obvious changes may go to `main` directly. Outside
+  contributors have no write access: they work from a fork, and their pull requests need the checks and a team member
+  to merge.
+- **Claude does not use the bypass**: it works on a branch and opens a pull request, even when the account could push
+  to `main`. Merging (one click once CI is green) or a direct push is done by the person. Never force-push.
+- **Pushing and pull requests** only when the person asks (the `/ticket` skill counts as asked). Never merge a pull
+  request, approve your own, or close someone else's ticket; that is for people.
+- **Labels**: `bug`, `enhancement`, `task` (kind), `client`, `web`, `service`, `plugin`, `ops` (part), `needs-decision`
+  and `blocked` (do not start), `good first issue`. Ask before working on a ticket assigned to someone else.
+- **Writing style** in everything committed: English, no em or en dashes (use a hyphen with spaces, a colon or a new
+  sentence), commit messages one line without trailers.
