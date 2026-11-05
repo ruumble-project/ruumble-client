@@ -18,6 +18,7 @@ namespace ruumbledesk {
 namespace {
 
 	const QString kActionScheme = QStringLiteral("ruumbledesk");
+	const QUrl kCityMapUrl(QStringLiteral("qrc:/ruumbledesk/citymap.html"));
 
 	bool sameOrigin(const QUrl &a, const QUrl &b) {
 		return a.scheme() == b.scheme() && a.host() == b.host() && a.port() == b.port();
@@ -156,7 +157,8 @@ namespace {
 
 } // namespace
 
-RuumbleView::RuumbleView(QObject *desk, std::function< void(const QString &) > onAction, QWidget *parent)
+RuumbleView::RuumbleView(QObject *desk, QObject *cityMap, std::function< void(const QString &) > onAction,
+						 QWidget *parent)
 	: QWebEngineView(parent) {
 	// Named profile with storage under the client's own data dir: the pairing cookie
 	// (Max-Age one year) and the UI's localStorage survive a restart.
@@ -180,6 +182,8 @@ RuumbleView::RuumbleView(QObject *desk, std::function< void(const QString &) > o
 	auto *page    = new Page(m_profile, &m_service, std::move(onAction), this);
 	auto *channel = new QWebChannel(page);
 	channel->registerObject(QStringLiteral("desk"), desk);
+	// both objects reach every page of the view: each checks on every call which page asks
+	channel->registerObject(QStringLiteral("cityMap"), cityMap);
 	page->setWebChannel(channel);
 	setPage(page);
 	setContextMenuPolicy(Qt::NoContextMenu);
@@ -193,6 +197,32 @@ RuumbleView::~RuumbleView() {
 
 bool RuumbleView::showsService() const {
 	return m_service.isValid() && sameOrigin(url(), m_service);
+}
+
+bool RuumbleView::isCityMap(const QUrl &url) {
+	return url == kCityMapUrl;
+}
+
+bool RuumbleView::showsCityMap() const {
+	return isCityMap(url());
+}
+
+void RuumbleView::showCityMap() {
+	if (!showsCityMap()) {
+		load(kCityMapUrl);
+	}
+}
+
+void RuumbleView::leaveCityMap(bool connected) {
+	if (m_service.isValid()) {
+		load(m_service);
+	} else {
+		setHtml(placeholderHtml(connected));
+	}
+}
+
+void RuumbleView::forgetService() {
+	m_service = QUrl();
 }
 
 void RuumbleView::showService(const QString &baseUrl) {

@@ -1,0 +1,667 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ruumble</title>
+<!--
+  Ruumble Client: the City Map, Mumble's connection dialog in the building look (ticket #8).
+  Bundled with the client (ruumble-desk.qrc) and shown in the main view; talks to the object "cityMap"
+  (client/CityMap.h) over QWebChannel. Qt WebEngine 6.4 is Chromium 102: no :has(), no popover, no color-mix().
+  Colours from ruumble-server's web/src/tokens.css.
+-->
+<style>
+:root {
+  --ink: #003869;
+  --ink-soft: #0f4b8c;
+  --blue-700: #00508c;
+  --blue-500: #5aa6e7;
+  --blue-300: #9ccaf1;
+  --blue-50: #eef5fc;
+  --accent: #fbd200;
+  --alert: #c62828;
+  --good: #2f8f4f;
+  --fair: #e0a800;
+  --line: #d5e3f0;
+  --muted: #7c8ea3;
+  --font: "Inter Variable", "Inter", "Segoe UI", system-ui, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ink); color: var(--ink); font-family: var(--font); font-size: 15px; }
+body { overflow: auto; }
+main { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.btn { font-size: 14px; font-weight: 700; min-height: 38px; padding: 0 16px; border-radius: 6px; border: 1px solid var(--blue-300); background: #fff; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2; }
+.btn:hover { background: var(--blue-50); }
+.btn:disabled { color: var(--muted); border-color: var(--line); cursor: default; background: #fff; }
+.btn.solid { background: var(--ink); border-color: var(--ink); color: #fff; }
+.btn.solid:hover { background: var(--ink-soft); }
+.btn.solid:disabled { background: #b8c7d6; border-color: #b8c7d6; color: #fff; }
+.btn.danger { color: var(--alert); border-color: #efc3c3; }
+.btn.danger:hover { background: #fdf0f0; }
+.btn.danger:disabled { color: var(--muted); border-color: var(--line); background: #fff; }
+.btn.danger-solid { background: var(--alert); border-color: var(--alert); color: #fff; }
+.btn.small { min-height: 32px; font-size: 13px; padding: 0 12px; }
+.sign { display: inline-block; background: var(--ink); color: #fff; font-weight: 800; padding: 4px 12px; border-radius: 4px; letter-spacing: .02em; font-size: 17px; }
+
+/* the City Map */
+.map { width: 100%; max-width: 900px; background: #fff; border-radius: 10px; box-shadow: 0 16px 48px rgb(0 0 0 / .3); display: flex; flex-direction: column; }
+.map-h { display: flex; align-items: center; gap: 12px; padding: 16px 22px; border-bottom: 1px solid var(--line); }
+.map-h h1 { margin: 0; font-size: 19px; font-weight: 800; }
+.map-b { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 20px; padding: 20px 22px 16px; }
+.side { display: flex; flex-direction: column; gap: 8px; }
+.city { width: 100px; height: 100px; align-self: center; margin-bottom: 6px; }
+.side .btn { padding: 6px 8px; font-size: 13px; min-height: 42px; }
+@media (max-width: 640px) {
+  .map-b { grid-template-columns: 1fr; }
+  .side { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .city { width: 64px; height: 64px; margin: 0 6px 0 0; }
+}
+
+.note { border-left: 4px solid var(--alert); background: #fdf0f0; border-radius: 4px; padding: 10px 13px; display: flex; gap: 12px; align-items: center; justify-content: space-between; font-size: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+.note b { display: block; font-size: 15px; }
+.note .detail { color: #6b2a2a; }
+
+.book { border: 1px solid var(--line); border-radius: 6px; overflow: auto; max-height: 340px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { position: sticky; top: 0; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--blue-700); background: var(--blue-50); padding: 8px 12px; font-weight: 700; white-space: nowrap; z-index: 1; }
+td { padding: 10px 12px; border-top: 1px solid var(--line); white-space: nowrap; cursor: default; }
+td.name { font-weight: 700; position: relative; padding-left: 16px; }
+td.addr { color: var(--blue-700); font-variant-numeric: tabular-nums; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+td.vis { font-variant-numeric: tabular-nums; }
+th.c, td.c { text-align: center; }
+tbody tr:hover td { background: #f6faff; }
+tr.sel td, tr.sel:hover td { background: var(--blue-50); }
+tr.sel td.name::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ink); }
+tr.down td.name, tr.down td.addr, tr.down td.vis { color: var(--muted); }
+tr:focus { outline: none; }
+tr:focus-visible td { box-shadow: inset 0 0 0 2px var(--accent); }
+.hq { font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; background: var(--accent); color: var(--ink); padding: 1px 6px; border-radius: 3px; margin-left: 6px; vertical-align: 1px; }
+.empty td { color: var(--blue-700); font-style: italic; padding: 22px 16px; cursor: default; }
+
+.sig { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; vertical-align: -2px; }
+.sig i { width: 4px; background: var(--line); border-radius: 1px; display: block; }
+.sig i:nth-child(1) { height: 25%; } .sig i:nth-child(2) { height: 50%; } .sig i:nth-child(3) { height: 75%; } .sig i:nth-child(4) { height: 100%; }
+.sig.good i.f { background: var(--good); } .sig.fair i.f { background: var(--fair); } .sig.poor i.f { background: var(--alert); }
+.sig.none::after { content: "\00d7"; margin-left: 3px; color: var(--alert); font-weight: 800; font-size: 14px; line-height: 1; align-self: center; }
+
+.visit { margin: 0 22px; padding: 12px 16px 14px; border: 1px solid var(--line); border-radius: 6px; background: #fbfdff; }
+.visit fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 7px; }
+.visit legend { font-weight: 800; font-size: 15px; padding: 0; margin-bottom: 6px; }
+.opt { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.opt input { accent-color: var(--ink); width: 16px; height: 16px; margin: 0; }
+.opt select { border: 1px solid var(--blue-300); border-radius: 6px; padding: 3px 8px; font-weight: 700; background: #fff; min-width: 200px; }
+.opt select:disabled { color: var(--muted); border-color: var(--line); }
+.map-f { display: flex; justify-content: space-between; align-items: center; padding: 14px 22px; margin-top: 16px; border-top: 1px solid var(--line); background: #f8fafc; border-radius: 0 0 10px 10px; }
+.map-f .btn { min-width: 128px; }
+
+/* entering */
+.card { width: 100%; max-width: 440px; background: #fff; border-radius: 10px; padding: 28px; box-shadow: 0 16px 48px rgb(0 0 0 / .3); display: flex; flex-direction: column; gap: 14px; align-items: center; text-align: center; }
+.spinner { width: 46px; height: 46px; border-radius: 50%; border: 5px solid var(--blue-50); border-top-color: var(--ink); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; border-top-color: var(--accent); } }
+.bar { width: 100%; height: 6px; background: var(--blue-50); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .5s linear; }
+.card .t { font-weight: 800; font-size: 17px; }
+.card .s { font-size: 14px; color: var(--blue-700); font-variant-numeric: tabular-nums; }
+
+/* dialogs */
+.scrim { position: fixed; inset: 0; background: rgb(0 30 60 / .55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10; }
+.form { width: 100%; max-width: 460px; background: #fff; border-radius: 10px; box-shadow: 0 20px 50px rgb(0 0 0 / .4); display: flex; flex-direction: column; }
+.form h2 { margin: 0; padding: 14px 20px; border-bottom: 1px solid var(--line); font-size: 17px; font-weight: 800; }
+.form-b { padding: 16px 20px; display: grid; gap: 12px; }
+.form-b p { margin: 0; line-height: 1.5; }
+.field { display: grid; gap: 4px; }
+.field label { font-size: 12px; font-weight: 700; color: var(--blue-700); }
+.field input { border: 1px solid var(--blue-300); border-radius: 6px; padding: 7px 10px; width: 100%; min-width: 0; background: #fff; }
+.field.err input { border-color: var(--alert); }
+.field .msg { font-size: 12px; color: var(--alert); min-height: 0; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 10px; align-items: start; }
+.code { position: relative; }
+.code input { padding-right: 84px; }
+.code .show { position: absolute; right: 6px; bottom: 5px; border: 0; background: none; font-size: 12px; font-weight: 600; color: var(--blue-700); cursor: pointer; padding: 3px 6px; }
+.tip { position: fixed; z-index: 20; max-width: 380px; background: #1d2733; color: #fff; font-size: 14px; line-height: 1.45; padding: 8px 12px; border-radius: 6px; box-shadow: 0 6px 18px rgb(0 0 0 / .3); pointer-events: none; }
+.tip div + div { margin-top: 2px; }
+.tip .tip-head { font-weight: 700; margin-top: 6px; }
+.tip .tip-note { color: #c9d6e3; margin-top: 6px; }
+.form-f { display: flex; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--line); background: #f8fafc; border-radius: 0 0 10px 10px; }
+</style>
+</head>
+<body>
+<main>
+
+  <section class="map" id="map" hidden aria-labelledby="title">
+    <header class="map-h"><span class="sign">Ruumble</span><h1 id="title" data-t="heading"></h1></header>
+    <div class="map-b">
+      <div class="side">
+        <svg class="city" viewBox="0 0 100 100" aria-hidden="true">
+          <rect x="0" y="0" width="100" height="100" rx="14" fill="#eef5fc"/>
+          <rect x="10" y="44" width="16" height="44" fill="#5aa6e7"/>
+          <rect x="24" y="22" width="22" height="66" fill="#003869"/>
+          <rect x="44" y="34" width="16" height="54" fill="#0f4b8c"/>
+          <rect x="58" y="14" width="20" height="74" fill="#003869"/>
+          <rect x="76" y="50" width="14" height="38" fill="#5aa6e7"/>
+          <rect x="66" y="6" width="3" height="9" fill="#003869"/>
+          <g fill="#fbd200">
+            <rect x="28" y="28" width="4" height="5"/><rect x="38" y="28" width="4" height="5"/>
+            <rect x="28" y="40" width="4" height="5"/><rect x="38" y="52" width="4" height="5"/>
+            <rect x="28" y="64" width="4" height="5"/><rect x="62" y="20" width="4" height="5"/>
+            <rect x="70" y="32" width="4" height="5"/><rect x="62" y="44" width="4" height="5"/>
+            <rect x="70" y="58" width="4" height="5"/><rect x="48" y="42" width="3" height="4"/>
+            <rect x="48" y="62" width="3" height="4"/>
+          </g>
+          <rect x="6" y="86" width="88" height="4" rx="2" fill="#003869"/>
+        </svg>
+        <button class="btn" id="add" type="button" data-t="add"></button>
+        <button class="btn" id="edit" type="button" data-t="edit"></button>
+        <button class="btn danger" id="remove" type="button" data-t="remove"></button>
+      </div>
+      <div>
+        <div class="note" id="note" role="alert" hidden>
+          <span><b id="note-title"></b><span id="note-text"></span> <span class="detail" id="note-detail"></span></span>
+          <button class="btn small" id="again" type="button" data-t="tryAgain"></button>
+        </div>
+        <div class="book">
+          <table>
+            <thead><tr><th data-t="colName"></th><th data-t="colHost"></th><th class="c" data-t="colConnection"></th><th class="c" data-t="colVisitors"></th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="visit">
+      <fieldset>
+        <legend data-t="nextVisit"></legend>
+        <label class="opt"><input type="radio" name="visit" value="never"> <span data-t="never"></span></label>
+        <label class="opt"><input type="radio" name="visit" value="last"> <span data-t="last"></span></label>
+        <label class="opt"><input type="radio" name="visit" value="hq" id="visit-hq"> <span data-t="hq"></span>
+          <select id="hq-select" aria-labelledby="visit-hq"></select></label>
+      </fieldset>
+    </div>
+    <footer class="map-f">
+      <button class="btn" id="cancel" type="button" data-t="cancel"></button>
+      <button class="btn solid" id="enter" type="button" data-t="enter"></button>
+    </footer>
+  </section>
+
+  <section class="card" id="entering" hidden aria-live="polite">
+    <span class="sign">Ruumble</span>
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="t" id="entering-title"></div>
+    <div class="s" id="entering-detail"></div>
+    <div class="bar" aria-hidden="true"><i id="entering-bar"></i></div>
+    <button class="btn" id="entering-cancel" type="button" data-t="cancel"></button>
+  </section>
+
+</main>
+
+<div class="scrim" id="form-scrim" hidden>
+  <form class="form" id="form" novalidate aria-labelledby="form-title">
+    <h2 id="form-title"></h2>
+    <div class="form-b">
+      <div class="field" id="f-name"><label for="in-name" data-t="fName"></label><input id="in-name" autocomplete="off"><span class="msg"></span></div>
+      <div class="two">
+        <div class="field" id="f-host"><label for="in-host" data-t="fHost"></label><input id="in-host" autocomplete="off" spellcheck="false"><span class="msg"></span></div>
+        <div class="field" id="f-port"><label for="in-port" data-t="fPort"></label><input id="in-port" inputmode="numeric" autocomplete="off"><span class="msg"></span></div>
+      </div>
+      <div class="field" id="f-user"><label for="in-user" data-t="fUser"></label><input id="in-user" autocomplete="off" spellcheck="false"><span class="msg"></span></div>
+      <div class="field code" id="f-code"><label for="in-code" data-t="fCode"></label><input id="in-code" type="password" autocomplete="new-password"><button class="show" id="show-code" type="button" data-t="show"></button><span class="msg"></span></div>
+    </div>
+    <div class="form-f">
+      <button class="btn" id="form-cancel" type="button" data-t="cancel"></button>
+      <button class="btn solid" type="submit" data-t="save"></button>
+    </div>
+  </form>
+</div>
+
+<div class="scrim" id="ask-scrim" hidden>
+  <div class="form" role="alertdialog" aria-labelledby="ask-title" aria-describedby="ask-text">
+    <h2 id="ask-title" data-t="remove"></h2>
+    <div class="form-b"><p id="ask-text"></p></div>
+    <div class="form-f">
+      <button class="btn" id="ask-cancel" type="button" data-t="cancel"></button>
+      <button class="btn danger-solid" id="ask-ok" type="button" data-t="removeOk"></button>
+    </div>
+  </div>
+</div>
+
+<div class="tip" id="tip" role="tooltip" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Texts of ticket #8 (German and English)
+  var TEXTS = {
+    de: {
+      title: "Ruumble Stadtplan", heading: "Stadtplan", add: "Adresse notieren", edit: "Adresseintrag ändern", remove: "Adresseintrag entfernen",
+      enter: "Eintreten", cancel: "Abbrechen", save: "Speichern", show: "Anzeigen", hide: "Verbergen",
+      colName: "Gebäudename", colHost: "Adresse (Host)", colConnection: "Verbindung", colVisitors: "Besucher",
+      fName: "Gebäudename", fHost: "Adresse (Host)", fPort: "Hausnummer (Port)", fUser: "Besuchername", fCode: "Zutrittscode",
+      codeUnchanged: "unverändert",
+      nextVisit: "Beim nächsten Besuch", never: "Kein Gebäude automatisch betreten",
+      last: "Zuletzt besuchtes Gebäude betreten", hq: "Hauptquartier betreten", hqTag: "Hauptquartier",
+      entering: "Betrete „%1“ …", ofLimit: "%1 von %2 s", lastTag: "Zuletzt besucht",
+      notReachable: "„%1“ ist gerade nicht erreichbar.", couldNotEnter: "„%1“ konnte nicht betreten werden.",
+      rTimeout: "Der Server hat 15 Sekunden lang nicht geantwortet.",
+      rRefused: "Zutrittscode oder Zertifikat passt nicht.",
+      rNameInUse: "Besuchername ist schon vergeben.",
+      rTls: "Sichere Verbindung nicht möglich.",
+      rUnreachable: "Der Server ist nicht erreichbar.",
+      tryAgain: "Erneut versuchen",
+      askRemove: "„%1“ aus dem Stadtplan entfernen?",
+      askRemoveHq: "Es ist dein Hauptquartier: Beim nächsten Besuch wird dann kein Gebäude automatisch betreten.",
+      removeOk: "Entfernen",
+      empty: "Noch keine Adresse notiert. Mit „Adresse notieren“ legst du die erste an.",
+      eName: "Bitte einen Gebäudenamen eingeben.", eHost: "Bitte eine Adresse ohne Leerzeichen eingeben.",
+      ePort: "Nur Ziffern, 1 bis 65535", eUser: "Bitte einen Besuchernamen eingeben.",
+      noAnswer: "antwortet nicht", ms: "%1 ms",
+      viaHead: "Verbindet über:", viaNote: "Grund ist ein DNS-SRV-Eintrag des Servers. Der Port der Adresse gilt dann nicht."
+    },
+    en: {
+      title: "Ruumble City Map", heading: "City Map", add: "Note Address", edit: "Edit Address", remove: "Remove Address",
+      enter: "Enter", cancel: "Cancel", save: "Save", show: "Show", hide: "Hide",
+      colName: "Building name", colHost: "Address (Host)", colConnection: "Connection", colVisitors: "Visitors",
+      fName: "Building name", fHost: "Address (Host)", fPort: "Building number (Port)", fUser: "Visitor name", fCode: "Access code",
+      codeUnchanged: "unchanged",
+      nextVisit: "On your next visit", never: "Do not enter any building automatically",
+      last: "Return to the last visited building", hq: "Enter headquarters", hqTag: "Headquarters",
+      entering: "Entering “%1” …", ofLimit: "%1 of %2 s", lastTag: "Last visited",
+      notReachable: "“%1” is not reachable right now.", couldNotEnter: "“%1” could not be entered.",
+      rTimeout: "The server did not answer within 15 seconds.",
+      rRefused: "Access code or certificate does not match.",
+      rNameInUse: "Visitor name is already in use.",
+      rTls: "A secure connection is not possible.",
+      rUnreachable: "The server is not reachable.",
+      tryAgain: "Try again",
+      askRemove: "Remove “%1” from the City Map?",
+      askRemoveHq: "It is your headquarters: on your next visit no building will be entered automatically.",
+      removeOk: "Remove",
+      empty: "No address noted yet. Use “Note Address” to add the first one.",
+      eName: "Please enter a building name.", eHost: "Please enter an address without spaces.",
+      ePort: "Numbers only, 1 to 65535", eUser: "Please enter a visitor name.",
+      noAnswer: "does not answer", ms: "%1 ms",
+      viaHead: "Connects via:", viaNote: "The server has a DNS SRV record. The address's port does not apply then."
+    }
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var lang = "en";
+  var T = TEXTS.en;
+  var api = null;
+  var st = { accounts: [] };
+  var pings = {};
+  var selected = -1;
+  var editing = null; // id being edited, -1 for a new address
+  var codeChanged = false;
+
+  function fmt(s) { var a = arguments; return s.replace(/%(\d)/g, function (m, n) { return a[+n]; }); }
+
+  function applyTexts() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-t]").forEach(function (n) { n.textContent = T[n.getAttribute("data-t")]; });
+    document.title = T.title;
+  }
+
+  // own tooltip: the engine's one is small and cannot be styled. lines: [[text, class], ...]
+  // key: stays the same when the list is drawn again (every ping), so an open tooltip follows the new element
+  var tipKey = null;
+  function setTip(el, lines, key) {
+    el.tipLines = lines;
+    el.dataset.tipkey = key;
+    el.addEventListener("mouseenter", function () { tipKey = key; showTip(el); });
+    el.addEventListener("mouseleave", function () { tipKey = null; hideTip(); });
+  }
+
+  function showTip(el) {
+    var tip = $("tip");
+    tip.textContent = "";
+    el.tipLines.forEach(function (l) {
+      var d = document.createElement("div");
+      d.textContent = l[0];
+      if (l[1]) d.className = l[1];
+      tip.appendChild(d);
+    });
+    tip.hidden = false;
+    var r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, innerWidth - w - 8));
+    var top = r.bottom + 6 + h > innerHeight - 8 ? r.top - h - 6 : r.bottom + 6;
+    tip.style.left = left + "px";
+    tip.style.top = Math.max(8, top) + "px";
+  }
+
+  function hideTip() { $("tip").hidden = true; }
+
+  function account(id) {
+    for (var i = 0; i < st.accounts.length; i++) if (st.accounts[i].id === id) return st.accounts[i];
+    return null;
+  }
+
+  // ---------------------------------------------------------------- rendering
+
+  function bars(p, key) {
+    var span = document.createElement("span");
+    span.className = "sig";
+    var filled = 0;
+    var label = "";
+    if (p && p.gaveUp) { span.className += " none"; label = T.noAnswer; }
+    else if (p && p.answered && p.ms >= 0) {
+      if (p.ms < 80) { filled = 4; span.className += " good"; }
+      else if (p.ms <= 200) { filled = 2; span.className += " fair"; }
+      else { filled = 1; span.className += " poor"; }
+      label = fmt(T.ms, p.ms);
+    }
+    span.setAttribute("role", "img");
+    span.setAttribute("aria-label", label);
+    if (label) setTip(span, [[label]], "con-" + key);
+    for (var i = 0; i < 4; i++) {
+      var b = document.createElement("i");
+      if (i < filled) b.className = "f";
+      span.appendChild(b);
+    }
+    return span;
+  }
+
+  function visitors(p) {
+    if (p && p.answered && !p.gaveUp && p.users >= 0) return p.users + " / " + p.maxUsers;
+    if (p && p.gaveUp) return "?";
+    return "";
+  }
+
+  function renderRows() {
+    var body = $("rows");
+    body.textContent = "";
+    if (!st.accounts.length) {
+      var tr = document.createElement("tr");
+      tr.className = "empty";
+      var td = document.createElement("td");
+      td.colSpan = 4;
+      td.textContent = T.empty;
+      tr.appendChild(td);
+      body.appendChild(tr);
+    }
+    st.accounts.forEach(function (a) {
+      var p = pings[a.id];
+      var tr = document.createElement("tr");
+      tr.tabIndex = a.id === selected ? 0 : -1;
+      tr.dataset.id = a.id;
+      if (a.id === selected) tr.className = "sel";
+      if (p && p.gaveUp) tr.className += " down";
+      tr.setAttribute("aria-selected", a.id === selected ? "true" : "false");
+
+      var name = document.createElement("td");
+      name.className = "name";
+      name.textContent = a.name;
+      if (a.id === st.headquarters) {
+        var tag = document.createElement("span");
+        tag.className = "hq";
+        tag.textContent = T.hqTag;
+        name.appendChild(tag);
+      }
+      var host = document.createElement("td");
+      host.className = "addr";
+      host.textContent = a.port === 64738 ? a.host : a.host + ":" + a.port;
+      var lines = [[a.user + " @ " + a.host + ":" + a.port]];
+      if (p && p.via) {
+        lines.push([T.viaHead, "tip-head"]);
+        p.via.split(", ").forEach(function (hop) { lines.push([hop]); });
+        lines.push([T.viaNote, "tip-note"]);
+      }
+      setTip(host, lines, "host-" + a.id);
+      var con = document.createElement("td");
+      con.className = "c";
+      con.appendChild(bars(p, a.id));
+      var vis = document.createElement("td");
+      vis.className = "c vis";
+      vis.textContent = visitors(p);
+      tr.appendChild(name); tr.appendChild(host); tr.appendChild(con); tr.appendChild(vis);
+      tr.addEventListener("click", function () { select(a.id, false); });
+      tr.addEventListener("dblclick", function () { select(a.id, false); enter(); });
+      body.appendChild(tr);
+    });
+    var again = tipKey && document.querySelector('[data-tipkey="' + tipKey + '"]');
+    if (again) showTip(again); else { tipKey = null; hideTip(); }
+    var has = account(selected) !== null;
+    $("edit").disabled = !has;
+    $("remove").disabled = !has;
+    $("enter").disabled = !has;
+  }
+
+  function renderVisit() {
+    var sel = $("hq-select");
+    var keep = sel.value;
+    sel.textContent = "";
+    st.accounts.forEach(function (a) {
+      var o = document.createElement("option");
+      o.value = a.id;
+      o.textContent = a.name;
+      sel.appendChild(o);
+    });
+    if (st.headquarters >= 0) sel.value = String(st.headquarters);
+    else if (keep !== "" && account(+keep)) sel.value = keep;
+    else if (account(selected)) sel.value = String(selected);
+    document.querySelectorAll("input[name=visit]").forEach(function (r) { r.checked = r.value === st.nextVisit; });
+    $("visit-hq").disabled = !st.accounts.length;
+    sel.disabled = !st.accounts.length || st.nextVisit !== "hq";
+  }
+
+  function renderNote() {
+    var n = st.note;
+    $("note").hidden = !n;
+    if (!n) return;
+    var reasons = { timeout: T.rTimeout, refused: T.rRefused, nameInUse: T.rNameInUse, tls: T.rTls, unreachable: T.rUnreachable };
+    var reachable = n.reason === "refused" || n.reason === "nameInUse";
+    $("note-title").textContent = fmt(reachable ? T.couldNotEnter : T.notReachable, n.building);
+    $("note-text").textContent = reasons[n.reason] || T.rUnreachable;
+    $("note-detail").textContent = n.reason === "unreachable" && n.detail ? "(" + n.detail + ")" : "";
+  }
+
+  function renderEntering() {
+    var e = st.entering;
+    $("entering").hidden = !e;
+    $("map").hidden = !!e;
+    if (!e) return;
+    $("entering-title").textContent = fmt(T.entering, e.name);
+    var parts = [];
+    if (e.mode === "hq") parts.push(T.hqTag);
+    else if (e.mode === "last") parts.push(T.lastTag);
+    parts.push(e.host);
+    parts.push(fmt(T.ofLimit, e.seconds, e.limit));
+    $("entering-detail").textContent = parts.join(" · ");
+    $("entering-bar").style.width = Math.min(100, Math.round(100 * e.seconds / e.limit)) + "%";
+  }
+
+  function render() {
+    if (selected < 0 || !account(selected)) {
+      var pick = st.headquarters >= 0 ? st.headquarters : -1;
+      if (pick < 0) st.accounts.forEach(function (a) { if (pick < 0 && a.last) pick = a.id; });
+      if (pick < 0 && st.accounts.length) pick = st.accounts[0].id;
+      selected = pick;
+    }
+    renderEntering();
+    renderNote();
+    renderRows();
+    renderVisit();
+  }
+
+  function refresh() {
+    api.state(function (s) {
+      if (!s || !s.accounts) return;
+      if (s.lang !== lang) { lang = s.lang; T = TEXTS[lang] || TEXTS.en; applyTexts(); }
+      var wasEntering = !!st.entering;
+      st = s;
+      if (s.headquarters === undefined) st.headquarters = -1;
+      render();
+      if (wasEntering && !s.entering) focusSelected();
+    });
+  }
+
+  // ---------------------------------------------------------------- actions
+
+  function select(id, focus) {
+    selected = id;
+    renderRows();
+    if (focus) focusSelected();
+  }
+
+  function focusSelected() {
+    var row = document.querySelector("tr.sel");
+    if (row) row.focus();
+  }
+
+  function enter() { if (account(selected)) api.enter(selected); }
+
+  function setField(key, error) {
+    var f = $("f-" + key);
+    f.className = f.className.replace(/ err\b/g, "") + (error ? " err" : "");
+    f.querySelector(".msg").textContent = error || "";
+  }
+
+  function openForm(id) {
+    var a = id >= 0 ? account(id) : null;
+    editing = a ? id : -1;
+    codeChanged = false;
+    $("form-title").textContent = a ? T.edit : T.add;
+    $("in-name").value = a ? a.name : "";
+    $("in-host").value = a ? a.host : "";
+    $("in-port").value = a ? String(a.port) : "64738";
+    $("in-user").value = a ? a.user : "";
+    $("in-code").value = "";
+    $("in-code").type = "password";
+    $("show-code").textContent = T.show;
+    $("in-code").placeholder = a && a.hasCode ? T.codeUnchanged : "";
+    ["name", "host", "port", "user"].forEach(function (k) { setField(k, ""); });
+    $("form-scrim").hidden = false;
+    $("in-name").focus();
+  }
+
+  function closeForm() { $("form-scrim").hidden = true; editing = null; focusSelected(); }
+
+  function validate() {
+    var errors = {};
+    if (!$("in-name").value.trim()) errors.name = T.eName;
+    var host = $("in-host").value.trim();
+    if (!host || /[\s\/]/.test(host)) errors.host = T.eHost;
+    var port = $("in-port").value.trim();
+    if (!/^\d+$/.test(port) || +port < 1 || +port > 65535) errors.port = T.ePort;
+    if (!$("in-user").value.trim()) errors.user = T.eUser;
+    ["name", "host", "port", "user"].forEach(function (k) { setField(k, errors[k] || ""); });
+    var first = ["name", "host", "port", "user"].filter(function (k) { return errors[k]; })[0];
+    if (first) $("in-" + first).focus();
+    return !first;
+  }
+
+  function submitForm(ev) {
+    ev.preventDefault();
+    if (!validate()) return;
+    var id = editing;
+    var entry = {
+      name: $("in-name").value, host: $("in-host").value, port: $("in-port").value, user: $("in-user").value,
+      code: $("in-code").value, codeChanged: codeChanged
+    };
+    var name = entry.name.trim();
+    api.save(id, entry, function (error) {
+      if (error) {
+        var map = { name: T.eName, host: T.eHost, port: T.ePort, user: T.eUser };
+        if (map[error]) { setField(error, map[error]); $("in-" + error).focus(); }
+        return;
+      }
+      $("form-scrim").hidden = true;
+      editing = null;
+      api.state(function (s) {
+        st = s;
+        st.accounts.forEach(function (a) { if (a.name === name) selected = a.id; });
+        render();
+        focusSelected();
+      });
+    });
+    $("in-code").value = "";
+  }
+
+  function askRemove() {
+    var a = account(selected);
+    if (!a) return;
+    var text = fmt(T.askRemove, a.name);
+    if (a.id === st.headquarters) text += " " + T.askRemoveHq;
+    $("ask-text").textContent = text;
+    $("ask-scrim").hidden = false;
+    $("ask-cancel").focus();
+  }
+
+  function closeAsk() { $("ask-scrim").hidden = true; focusSelected(); }
+
+  // ---------------------------------------------------------------- wiring
+
+  function wire() {
+    $("add").addEventListener("click", function () { openForm(-1); });
+    $("edit").addEventListener("click", function () { openForm(selected); });
+    $("remove").addEventListener("click", askRemove);
+    $("enter").addEventListener("click", enter);
+    $("cancel").addEventListener("click", function () { api.cancel(); });
+    $("entering-cancel").addEventListener("click", function () { api.cancel(); });
+    $("again").addEventListener("click", function () { api.tryAgain(); });
+    $("form").addEventListener("submit", submitForm);
+    $("form-cancel").addEventListener("click", closeForm);
+    $("in-code").addEventListener("input", function () { codeChanged = true; });
+    $("show-code").addEventListener("click", function () {
+      var hidden = $("in-code").type === "password";
+      $("in-code").type = hidden ? "text" : "password";
+      $("show-code").textContent = hidden ? T.hide : T.show;
+    });
+    $("ask-cancel").addEventListener("click", closeAsk);
+    $("ask-ok").addEventListener("click", function () {
+      var id = selected;
+      $("ask-scrim").hidden = true;
+      selected = -1;
+      api.remove(id);
+    });
+    document.querySelectorAll("input[name=visit]").forEach(function (r) {
+      r.addEventListener("change", function () {
+        if (!r.checked) return;
+        var id = r.value === "hq" ? +$("hq-select").value : -1;
+        api.setNextVisit(r.value, id);
+      });
+    });
+    $("hq-select").addEventListener("change", function () { api.setNextVisit("hq", +$("hq-select").value); });
+
+    document.addEventListener("keydown", function (e) {
+      if (!$("form-scrim").hidden) { if (e.key === "Escape") closeForm(); return; }
+      if (!$("ask-scrim").hidden) { if (e.key === "Escape") closeAsk(); return; }
+      if (st.entering) { if (e.key === "Escape") api.cancel(); return; }
+      var inRows = document.activeElement && document.activeElement.closest && document.activeElement.closest("#rows");
+      if (inRows && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+        e.preventDefault();
+        var ids = st.accounts.map(function (a) { return a.id; });
+        var i = ids.indexOf(selected) + (e.key === "ArrowDown" ? 1 : -1);
+        if (i >= 0 && i < ids.length) select(ids[i], true);
+      } else if (inRows && e.key === "Enter") {
+        e.preventDefault();
+        enter();
+      } else if (inRows && e.key === "Delete") {
+        askRemove();
+      } else if (e.key === "Escape") {
+        api.cancel();
+      }
+    });
+  }
+
+  applyTexts();
+  wire();
+  if (!(window.qt && qt.webChannelTransport)) return;
+  new QWebChannel(qt.webChannelTransport, function (channel) {
+    api = channel.objects.cityMap;
+    api.changed.connect(refresh);
+    api.pinged.connect(function (list) {
+      pings = {};
+      list.forEach(function (p) { pings[p.id] = p; });
+      if (!st.entering) renderRows();
+    });
+    api.ready();
+    refresh();
+  });
+})();
+</script>
+</body>
+</html>

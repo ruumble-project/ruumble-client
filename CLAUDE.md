@@ -38,6 +38,11 @@ Works well **on this machine**: phases 0 and 1 of the ADR plus "Ruumble UI as ho
 - `client/DeskChannel`: object `desk` over QWebChannel (contract in `DeskChannel.h`), used by the web part in
   `web/src/lib/desk/` and `web/src/lib/ui/desk/DeskPanel.svelte` in ruumble-server. Keep both sides in sync, and keep
   the contract compatible: released clients meet newer services and the other way round.
+- `client/CityMap` with the bundled page `client/citymap/citymap.html`: the Ruumble City Map instead of Mumble's
+  connection dialog (ticket #8). Object `cityMap` over the same QWebChannel, only answers the bundled page
+  (`RuumbleView::showsCityMap`); the access code never goes to the page. Addresses are Mumble's favourites, "On your
+  next visit" is Mumble's auto connect plus `city-map.json` (headquarters). `client/ServerPing`: the UDP ping for
+  connection and visitors. Headless: `DESK_LINK=0 test/run-desk.sh` (see `test/README.md`).
 
 Working assumptions from the ADR (the owner said "just do it"; the ADR stays a draft): own settings dir and name
 "Ruumble Client", UI loaded from the service URL, Mumble 1.6 only. Not in scope: phase 2, screen sharing (needs Qt

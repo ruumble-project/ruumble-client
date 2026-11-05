@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Starts Ruumble Client headless (offscreen) in an isolated HOME against the local stack.
 #   run-desk.sh <Name> [fresh]   fresh = wipe the test home first
+#   DESK_LINK=0 starts without a mumble:// link: the City Map (or "On your next visit") decides what happens
+#   DESK_AUTOCONNECT=1 sets Mumble's "connect automatically" (with the City Map's city-map.json: "On your next visit"),
+#   DESK_LAST_SERVER=<name> the last visited building, DESK_LANG=de_DE the system language
 # WebEngine DevTools on 127.0.0.1:9333 (for Playwright over CDP). Log: $T/desk-<Name>.log
 set -eu
 T="$(cd "$(dirname "$0")" && pwd)/.work"; mkdir -p "$T"
@@ -16,11 +19,15 @@ if [ ! -f "$H/Documents/MumbleAutomaticCertificateBackup.p12" ]; then
   openssl pkcs12 -export -inkey "$H/c.key" -in "$H/c.crt" -passout pass: -out "$H/Documents/MumbleAutomaticCertificateBackup.p12"
 fi
 # push-to-talk without a key: never sends the microphone
+autoconnect=false; [ "${DESK_AUTOCONNECT:-0}" = 1 ] && autoconnect=true
 cat > "$conf/mumble_settings.json" <<JSON
 {
   "settings_version": 1,
+  "mumble_has_quit_normally": true,
   "misc": { "audio_wizard_has_been_shown": true },
   "audio": { "transmit_mode": "PTT", "mute_cue_popup_shown": true },
+  "network": { "auto_connect_to_last_server": $autoconnect },
+  "last_connection": { "server_name": "${DESK_LAST_SERVER:-}" },
   "update": { "check_for_updates": false, "check_for_plugin_updates": false }
 }
 JSON
@@ -38,10 +45,12 @@ db.execute("INSERT INTO cert (hostname, port, digest) VALUES ('127.0.0.1', 64738
 db.commit()
 PY
 
-env -i HOME="$H" PATH=/usr/bin:/bin LANG=en_US.UTF-8 XDG_RUNTIME_DIR="$H/run" \
+link="mumble://$user@127.0.0.1:64738/"
+[ "${DESK_LINK:-1}" = 0 ] && link=""
+env -i HOME="$H" PATH=/usr/bin:/bin LANG=${DESK_LANG:-en_US}.UTF-8 XDG_RUNTIME_DIR="$H/run" \
   QT_QPA_PLATFORM=offscreen QTWEBENGINE_REMOTE_DEBUGGING=127.0.0.1:${DEVTOOLS_PORT:-9333} \
   QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" RUUMBLE_LOG_STDERR=1 \
   bash -c 'mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR" && exec "$0" "$@"' \
-  "$ROOT/work/build/mumble" "mumble://$user@127.0.0.1:64738/" > "$T/desk-$user.log" 2>&1 &
+  "$ROOT/work/build/mumble" ${link:+"$link"} > "$T/desk-$user.log" 2>&1 &
 echo $! > "$T/desk-$user.pid"
 echo "started pid $(cat "$T/desk-$user.pid"), log $T/desk-$user.log"
