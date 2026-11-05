@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Problem with the building in the browser, the service or the plugin
+    url: https://github.com/ruumble-project/ruumble-server/issues/new/choose
+    about: Those live in ruumble-server.
+  - name: Security problem
+    url: https://github.com/ruumble-project/ruumble-server/security/advisories/new
+    about: Please report vulnerabilities privately, not as an issue.

@@ -1,0 +1,26 @@
+name: Task
+description: Internal work for the team (refactoring, docs, CI, dependencies, a step of a bigger feature).
+labels: [task]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What and why
+      description: What needs to be done, and why now? Link related issues (also in ruumble-server).
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What must be true when this is done? One checkable statement per line.
+      placeholder: |
+        - [ ] the Fedora package installs on the current Fedora
+        - [ ] README.md names the install command
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Where in the code, open questions, things to watch out for.

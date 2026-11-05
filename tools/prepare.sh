@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Creates the Mumble work tree: clones Mumble (from GitHub, or a local checkout named in MUMBLE_REPO), checks out the pinned
-# ref and applies our patches. An existing work tree is left alone; remove it (rm -rf work/mumble) to start over,
+# ref, applies the upstream backports (patches/upstream) and our patches. An existing work tree is left alone; remove it (rm -rf work/mumble) to start over,
 # after tools/export-patches.sh if it holds changes you want to keep. Ruumble is the repo root and needs no work tree.
 set -eu
 source "$(dirname "$0")/common.sh"
@@ -17,6 +17,7 @@ if [ ! -d "$WM/.git" ]; then
     git -C "$WM" checkout -q -B ruumble-client
   fi
   git -C "$WM" submodule update --init --recursive -q
+  apply_upstream
   git -C "$WM" apply --whitespace=nowarn "$ROOT"/patches/mumble/*.patch
 else
   echo "== work/mumble exists, left as it is"

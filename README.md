@@ -59,20 +59,30 @@ delete it to import again) and its certificate (Mumble's automatic certificate b
 ./package.sh appimage                  # dist/Ruumble_Client-x86_64.AppImage, one file with Qt and Qt WebEngine inside
 ./package.sh package --distro debian12     # .deb for Debian 12      sudo apt install ./dist/ruumble-client_*+debian12_amd64.deb
 ./package.sh package --distro ubuntu2404   # .deb for Ubuntu 24.04 and Mint 22
+./package.sh package --distro fedora       # .rpm for the current Fedora   sudo dnf install ./dist/ruumble-client-*.rpm
 ./package.sh package --distro arch         # Arch Linux package    sudo pacman -U dist/ruumble-client-*.pkg.tar.zst
 ./package.sh all --distro debian12         # the package for that distro plus the AppImage
-./package.sh every                         # both .deb, the Arch package and the AppImage
+./package.sh every                         # both .deb, the .rpm, the Arch package and the AppImage
 ```
 
-Everything builds in a container (`packaging/Dockerfile` with Debian or Ubuntu as base, `packaging/Dockerfile.arch`), so the host needs nothing but
+Everything builds in a container (`packaging/Dockerfile` with Debian or Ubuntu as base, `packaging/Dockerfile.fedora`, `packaging/Dockerfile.arch`), so the host needs nothing but
 Docker; the repo and a local Mumble checkout are mounted read only, only `dist/` is written. The AppImage is always built on Debian 12
 (glibc 2.36): it runs on Debian 12+, Ubuntu 22.10+, Mint 22+, current Fedora and Arch and similar. Native packages
 are built against that distro's own Qt; their dependencies come from the linked libraries (`dpkg-shlibdeps`,
-`pacman -Qo`). They replace an installed `ruumble-desk`. The version is in `VERSION`.
+rpmbuild, `pacman -Qo`). Fedora's OpenSSL 4 needs an upstream Mumble fix that is not in a Mumble release yet: it is
+kept in `patches/upstream` and applied before our touch points (`tools/prepare.sh`). They replace an installed `ruumble-desk`. The version is in `VERSION`.
 
 Releases: `tools/release.sh <version>` bumps `VERSION` and `CHANGELOG.md`; pushing the tag `v<version>` builds the
-AppImage, both .deb and the Arch package in parallel in GitHub Actions (`.github/workflows/release.yml`) and attaches
+AppImage, both .deb, the .rpm, the Arch package and the Windows zip in parallel in GitHub Actions (`.github/workflows/release.yml`) and attaches
 them to this repo's GitHub release.
+
+## Windows
+
+The Windows build runs only in GitHub Actions (`.github/workflows/windows.yml`, script `packaging/windows/build.sh`):
+MSVC, Qt with WebEngine from `install-qt-action`, the other libraries from vcpkg (`packaging/windows/vcpkg.json`).
+Mumble supports only static builds on Windows, but Qt WebEngine needs shared Qt, so this is a shared build of its own.
+The result is a zip with `ruumble-client.exe`, its DLLs and Qt WebEngine; it is not signed yet. The workflow runs for
+every release, on pushes to branches named `windows*` and by hand.
 
 `tools/appimage.sh` (also `./build.sh --appimage`, without container) downloads `linuxdeploy` and its Qt plugin
 (pinned versions) into `work/appimage/tools` on first use.

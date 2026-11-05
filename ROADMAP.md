@@ -122,7 +122,8 @@ real desktop (layout of view and user dock, first-start audio wizard).
       `dist/Ruumble_Desk-x86_64.AppImage`, 131 MB, built against glibc 2.36 (Debian 12); contains QtWebEngineProcess, WebEngine resources,
       SQLite driver and OpenSSL TLS backend, no unresolved libraries. Fix on the way: `tools/appimage.sh` had no
       executable bit. Still open: Kevin starts it on the desktop (WebEngine sandbox inside the AppImage)
-- [ ] Windows and macOS: not covered (other toolchains: MSVC/vcpkg, macOS bundle); separate decision
+- [~] Windows (Kevin, 2026-11-05): own shared build in GitHub Actions (`windows.yml`, `packaging/windows/`), zip with
+      Qt WebEngine; not signed. macOS: not covered
 
 ## M8: Ruumble moves into this repo (Kevin, 2026-11-04, agreed with Bert)
 
@@ -267,3 +268,7 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
 - [x] Product name "Ruumble Client" instead of "Ruumble Desk" (Kevin, 2026-11-05); settings and data of Ruumble Desk taken
       over once on the first start (`RuumbleIntegration::takeOverDeskSettings`). Internal names stay (`desk` object,
       `RuumbleDesk` WebEngine profile, `ruumbledesk` namespace, patch file name)
+- [x] Fedora .rpm back (Kevin, 2026-11-05): Mumble's OpenSSL 4 fix `1f00fb39b8` as `patches/upstream`, applied before
+      our touch points and tagged `ruumble-base` in `work/mumble`, so `tools/export-patches.sh` writes only ours
+- [x] Team workflow (ADR-0026 in ruumble-server): tickets, branches, pull requests; `docs/workflow.md`, issue and PR
+      templates, skills `/ticket` and `/new-ticket`, CI on pull requests

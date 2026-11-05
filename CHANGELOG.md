@@ -7,6 +7,11 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Added
+
+- Fedora: an `.rpm` for the current Fedora in every release (built with Mumble's upstream fix for OpenSSL 4, kept in `patches/upstream` until a Mumble release has it)
+- Windows: Ruumble Client for Windows 10/11 x64 as a zip (`ruumble-client.exe` with Qt WebEngine), built in every release; not signed yet
+
 ## [0.34.0] - 2026-11-05
 
 ### Added

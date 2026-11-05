@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an improvement for the desktop program.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the situation and what is missing today. The why helps more than a finished solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: How could Ruumble Client support it? Does the web UI (ruumble-server) need to change as well?
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What must be true when this is done? One checkable statement per line. The team fills this in before work starts.
+      placeholder: |
+        - [ ] Ctrl+, opens the settings on Windows as well
+        - [ ] The shortcut is listed in the help
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Screenshots, platform, how many people would use it.

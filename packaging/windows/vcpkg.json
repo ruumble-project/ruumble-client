@@ -1,0 +1,19 @@
+{
+  "name": "ruumble-client",
+  "version-string": "0",
+  "description": "Libraries of the Windows build of Ruumble Client (Qt comes from install-qt-action, see packaging/windows/build.sh)",
+  "dependencies": [
+    "openssl",
+    "protobuf",
+    "poco",
+    "libsndfile",
+    "opus",
+    "boost-accumulators",
+    "boost-algorithm",
+    "boost-config",
+    "boost-system",
+    "boost-thread",
+    "boost-type-traits",
+    "boost-typeof"
+  ]
+}

@@ -19,6 +19,7 @@ case "$TARGET" in
     . /etc/os-release
     case "$ID" in
       debian|ubuntu) packaging/make-deb.sh "$DISTRO" /out ;;
+      fedora) packaging/make-rpm.sh "fc${VERSION_ID}" /out ;;
       arch) packaging/make-arch.sh "$DISTRO" /out ;;
       *) echo "no package format for $ID"; exit 1 ;;
     esac

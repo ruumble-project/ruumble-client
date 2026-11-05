@@ -36,6 +36,15 @@ git -C "$WM" checkout -q -B ruumble-client "$tag"
 git -C "$WM" submodule update --init --recursive -q
 ln -sfn "$ROOT/client" "$WM/src/mumble/ruumble"
 
+if ! apply_upstream > "$W/apply.log" 2>&1; then
+  cat "$W/apply.log"
+  echo
+  echo "== a backport in patches/upstream no longer applies to $tag: if $tag has the fix in another form, remove it"
+  echo "   from patches/upstream and run tools/update-mumble.sh $tag again"
+  exit 3
+fi
+cat "$W/apply.log"
+
 if ! git -C "$WM" apply --3way --whitespace=nowarn "$ROOT"/patches/mumble/*.patch > "$W/apply.log" 2>&1; then
   cat "$W/apply.log"
   echo

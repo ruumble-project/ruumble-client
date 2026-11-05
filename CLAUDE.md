@@ -14,8 +14,12 @@ Ruumble is edited in its own repo, never in `server/`; this repo only moves the 
 New Mumble releases: "Update alles" runs the skill `.claude/skills/update-all` (`tools/update-mumble.sh`, fixes,
 all checks).
 
-Work like ruumble-server (`server/CLAUDE.md`): commits go directly to `main`, no PRs, one-line commit messages; Claude
-commits and pushes only when asked. No em or en dashes anywhere; code, comments and docs in English.
+Team workflow (`docs/workflow.md`, ADR-0026 in ruumble-server): every change starts with a GitHub issue, gets a branch
+`<issue>-<slug>` from `main`, one-line English commits ending with `(#<issue>)`, and reaches `main` only through a pull
+request (template, `Closes #<issue>`, green CI, one approval, squash merge). Never commit to `main` directly (only the
+maintainer's release commit). Claude commits on the ticket branch and pushes or opens the pull request only when asked
+(the `/ticket` skill counts as asked; personal settings that forbid pushing win). Skills: `/ticket`, `/new-ticket`,
+`/update-all`. No em or en dashes anywhere; code, comments and docs in English.
 
 Progress lives in `ROADMAP.md`: tick off every finished item right away (`[x]`, `[~]` in progress) and add notes,
 so Kevin or the next session can continue at any point.

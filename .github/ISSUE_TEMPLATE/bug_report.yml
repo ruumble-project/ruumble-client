@@ -1,0 +1,53 @@
+name: Bug report
+description: Ruumble Client does not work as described.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start Ruumble Client
+        2. Connect to …
+  - type: dropdown
+    id: install
+    attributes:
+      label: How is it installed?
+      options:
+        - AppImage
+        - .deb (Debian 12)
+        - .deb (Ubuntu 24.04 / Mint 22)
+        - .rpm (Fedora)
+        - Arch package
+        - Windows zip
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Ruumble Client (Settings or the release file name), the Ruumble service (`/api/version`), the Mumble server.
+      placeholder: "client 0.34.0, service 0.34.0, Mumble server 1.6.870"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Linux Mint 22.3, Windows 11"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Start it from a terminal and copy the lines around the problem (Linux; on Windows the Mumble log window). Remove anything private.
+      render: text

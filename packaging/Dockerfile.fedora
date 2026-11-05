@@ -1,0 +1,11 @@
+# Build environment for the Ruumble Client Fedora package (rpm). Sources come in read only at run time.
+ARG BASE=fedora:latest
+FROM ${BASE}
+RUN dnf -y install \
+      gcc-c++ cmake ninja-build pkgconf-pkg-config git python3 file rpm-build desktop-file-utils patchelf \
+      qt6-qtbase-devel qt6-qtbase-private-devel qt6-qttools-devel qt6-qtsvg-devel qt6-linguist \
+      qt6-qtwebengine-devel qt6-qtwebchannel-devel \
+      mesa-libGL-devel boost-devel openssl-devel protobuf-devel protobuf-compiler libcap-devel \
+      libXi-devel libXext-devel libX11-devel alsa-lib-devel pulseaudio-libs-devel libogg-devel libsndfile-devel \
+      opus-devel poco-devel json-devel cli11-devel utf8cpp-devel spdlog-devel speexdsp-devel \
+ && dnf clean all

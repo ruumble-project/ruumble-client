@@ -1,7 +1,8 @@
 name: Release
 
-# Pushing a tag v<version> (VERSION, tools/release.sh) builds the AppImage and the native packages (.deb for Debian 12
-# and Ubuntu 24.04, Arch Linux package), each in its own container in parallel, and creates the GitHub release with all
+# Pushing a tag v<version> (VERSION, tools/release.sh) builds the AppImage, the native packages (.deb for Debian 12
+# and Ubuntu 24.04, .rpm for Fedora, Arch Linux package), each in its own container, and the Windows zip
+# (windows.yml) in parallel, and creates the GitHub release with all
 # of them and SHA256SUMS; the notes are the version's section in CHANGELOG.md. No release unless every build succeeds.
 # Started manually it is a dry run: it builds everything and uploads it as a workflow artifact, no release.
 on:
@@ -48,6 +49,7 @@ jobs:
           - { name: AppImage, args: "appimage" }
           - { name: deb Debian 12, args: "package --distro debian12" }
           - { name: deb Ubuntu 24.04, args: "package --distro ubuntu2404" }
+          - { name: rpm Fedora, args: "package --distro fedora" }
           - { name: Arch Linux, args: "package --distro arch" }
     steps:
       - uses: actions/checkout@v7
@@ -61,12 +63,17 @@ jobs:
           path: |
             dist/*.AppImage
             dist/*.deb
+            dist/*.rpm
             dist/*.pkg.tar.zst
           if-no-files-found: error
 
+  windows:
+    needs: version
+    uses: ./.github/workflows/windows.yml
+
   release:
     name: GitHub release
-    needs: [version, build]
+    needs: [version, build, windows]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -87,22 +94,26 @@ jobs:
           set -euo pipefail
           mkdir -p assets
           cp dist/Ruumble_Client-x86_64.AppImage "assets/Ruumble_Client-$VERSION-x86_64.AppImage"
-          cp dist/*.deb dist/*.pkg.tar.zst assets/
+          cp dist/*.deb dist/*.rpm dist/*.pkg.tar.zst assets/
+          cp dist/Ruumble_Client-x86_64-windows.zip "assets/Ruumble_Client-$VERSION-windows-x64.zip"
           (cd assets && sha256sum * > SHA256SUMS)
           cat assets/SHA256SUMS
           deb12="$(cd assets && ls ruumble-client_*+debian12_*.deb)"
           deb2404="$(cd assets && ls ruumble-client_*+ubuntu2404_*.deb)"
           arch="$(cd assets && ls ruumble-client-*.pkg.tar.zst)"
+          rpm="$(cd assets && ls ruumble-client-*.rpm)"
           {
             awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md
             echo
             echo "## Install"
             echo
-            echo "Ruumble Client $VERSION is the Mumble 1.6 client with the building as its window, for Linux x86_64. Guide: [README.md](https://github.com/$GITHUB_REPOSITORY/blob/v$VERSION/README.md)."
+            echo "Ruumble Client $VERSION is the Mumble 1.6 client with the building as its window, for Linux x86_64 and Windows x64. Guide: [README.md](https://github.com/$GITHUB_REPOSITORY/blob/v$VERSION/README.md)."
             echo
             echo "- **Debian 12:** \`sudo apt install ./$deb12\`"
             echo "- **Ubuntu 24.04, Linux Mint 22:** \`sudo apt install ./$deb2404\`"
+            echo "- **Fedora:** \`sudo dnf install ./$rpm\`"
             echo "- **Arch Linux:** \`sudo pacman -U $arch\`"
+            echo "- **Windows 10/11 (x64):** unpack \`Ruumble_Client-$VERSION-windows-x64.zip\` and start \`ruumble-client.exe\` (not signed yet: Windows SmartScreen asks once)."
             echo "- **Any other distribution:** \`Ruumble_Client-$VERSION-x86_64.AppImage\`, one file with Qt and Qt WebEngine inside (\`chmod +x\`, then start it)."
             echo
             echo "The packages replace an installed \`ruumble-desk\`. It needs a Ruumble service: [ruumble-server](https://github.com/ruumble-project/ruumble-server/releases)."

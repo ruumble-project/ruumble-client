@@ -74,7 +74,7 @@ Short, in the person's language:
 - Server submodule: where it stands, whether it was moved.
 - Each check with its result.
 - What only a person can do: start the Desk once on the desktop (`tools/run.sh`, speak, quit through the menu).
-- A one-line commit message. Do not commit or push unless the person asks; then commit to `main` and push only when
+- A one-line commit message. Do not commit or push unless the person asks; then on a branch `mumble-<tag>` with a pull request (`docs/workflow.md`), pushed only when
   told to.
 
 ## Stop and ask

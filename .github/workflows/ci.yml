@@ -1,0 +1,29 @@
+name: CI
+
+# On every pull request and push to main: builds Ruumble Client and its Debian 12 package in the packaging container
+# (the same as the release), so a broken build shows before the merge. The other packages and Windows are built by
+# release.yml; windows.yml also runs when the Windows build changes.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (Debian 12 package)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Shell scripts are valid
+        run: for f in build.sh package.sh tools/*.sh packaging/*.sh packaging/windows/*.sh test/*.sh; do bash -n "$f"; done
+      - run: ./package.sh package --distro debian12

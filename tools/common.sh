@@ -9,3 +9,24 @@ W="$ROOT/work"
 WM="$W/mumble"     # Mumble at MUMBLE_REF + patches/mumble + client/ (symlink)
 WB="$W/build"      # build dir of the client
 VERSION="$(cat "$ROOT/VERSION")"  # Ruumble Client's own version (tools/release.sh)
+
+# Upstream Mumble fixes that are on its master but not at MUMBLE_REF (patches/upstream, e.g. the OpenSSL 4 build fix
+# Fedora needs): applied before our touch points and committed in work/mumble, tagged ruumble-base, so that
+# tools/export-patches.sh writes only our own changes. A fix the Mumble tag already contains is skipped.
+apply_upstream() {
+  local p applied=0
+  for p in "$ROOT"/patches/upstream/*.patch; do
+    [ -e "$p" ] || continue
+    if git -C "$WM" apply --reverse --check "$p" 2>/dev/null; then
+      echo "== upstream $(basename "$p"): already in Mumble, skipped (remove it from patches/upstream)"
+      continue
+    fi
+    git -C "$WM" apply --whitespace=nowarn "$p" || return 1
+    echo "== upstream $(basename "$p")"
+    applied=1
+  done
+  if [ "$applied" = 1 ]; then
+    git -C "$WM" -c user.name=ruumble -c user.email=ruumble@localhost commit -q -a -m "Upstream backports (patches/upstream)"
+  fi
+  git -C "$WM" tag -f ruumble-base >/dev/null
+}
