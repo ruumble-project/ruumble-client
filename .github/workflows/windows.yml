@@ -39,13 +39,21 @@ jobs:
           arch: win64_msvc2022_64
           modules: qtwebengine qtwebchannel qtpositioning
           cache: true
-      - uses: actions/cache@v5
+      # vcpkg builds its libraries for about 40 minutes the first time: restore them, and save them even when the
+      # build itself fails afterwards
+      - uses: actions/cache/restore@v5
+        id: vcpkg-cache
         with:
           path: work/vcpkg_installed
           key: vcpkg-windows-2022-${{ hashFiles('packaging/windows/vcpkg.json') }}
       - name: Build
         shell: bash
         run: packaging/windows/build.sh
+      - uses: actions/cache/save@v5
+        if: always() && steps.vcpkg-cache.outputs.cache-hit != 'true' && hashFiles('work/vcpkg_installed/vcpkg/status') != ''
+        with:
+          path: work/vcpkg_installed
+          key: vcpkg-windows-2022-${{ hashFiles('packaging/windows/vcpkg.json') }}
       - name: Show the end of the log
         if: failure()
         shell: bash

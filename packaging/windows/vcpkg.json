@@ -5,7 +5,7 @@
   "dependencies": [
     "openssl",
     "protobuf",
-    "poco",
+    { "name": "poco", "features": ["xml", "zip"] },
     "libsndfile",
     "opus",
     "boost-accumulators",
