@@ -86,8 +86,8 @@ personal settings say about style. The full flow is `docs/workflow.md`.
   required checks green (`Build (Debian 12 package)`; the Windows build (`windows.yml`) runs on
   pull requests that touch `client/`, `patches/` or `packaging/windows/` and on branches named `windows*`, and must be
   green there too). Only squash merge is allowed: the pull
-  request title becomes the one commit on `main` (body left empty), so the title is one line in English ending with
-  `(#<issue>)`. Merged branches are deleted automatically.
+  request title becomes the one commit on `main` (body left empty), so the title is one line in English without a
+  number: GitHub adds the pull request number, `Closes #<issue>` in the body links the ticket. Merged branches are deleted automatically.
 - **Who the rules bind**: the team (roles admin, maintain, write: Kevin, Simon, Bert) may bypass the ruleset: no
   approval is needed, authors merge their own pull requests, small obvious changes may go to `main` directly. Outside
   contributors have no write access: they work from a fork, and their pull requests need the checks and a team member

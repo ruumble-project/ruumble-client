@@ -3,7 +3,7 @@
 The team flow is the same in both repositories and described once in ruumble-server:
 [docs/workflow.md](https://github.com/ruumble-project/ruumble-server/blob/main/docs/workflow.md) (decision: ADR-0026
 there). In short: ticket first, a branch `<issue>-<slug>` from `main`, one-line English commits ending with
-`(#<issue>)`, a pull request with `Closes #<issue>`, green CI, squash merge; no approval needed inside the team.
+`(#<issue>)`, a pull request titled without a number (GitHub adds it) with `Closes #<issue>`, green CI, squash merge; no approval needed inside the team.
 
 What is different here:
 
