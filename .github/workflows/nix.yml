@@ -1,0 +1,67 @@
+name: Nix
+
+# Builds the Nix flake (flake.nix, nix/package.nix) on pull requests and pushes that touch it, the client code, the
+# patches or the Mumble pin, so a Mumble update or a new dependency cannot break NixOS users silently. After a Mumble
+# update the hash in nix/mumble-src.json is unknown: this job prints the right one as an annotation.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "flake.nix"
+      - "flake.lock"
+      - "nix/**"
+      - "patches/**"
+      - "client/**"
+      - "pins.env"
+      - "server"
+      - ".github/workflows/nix.yml"
+  pull_request:
+    paths:
+      - "flake.nix"
+      - "flake.lock"
+      - "nix/**"
+      - "patches/**"
+      - "client/**"
+      - "pins.env"
+      - "server"
+      - ".github/workflows/nix.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build with Nix
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Mumble pin agrees with pins.env
+        run: |
+          pins="$(sed -nE 's/^MUMBLE_REF=\$\{MUMBLE_REF:-([^}]+)\}$/\1/p' pins.env)"
+          nix="$(python3 -c 'import json; print(json.load(open("nix/mumble-src.json"))["rev"])')"
+          echo "pins.env $pins, nix/mumble-src.json $nix"
+          [ "$pins" = "$nix" ] || { echo "::error::nix/mumble-src.json has $nix, pins.env has $pins"; exit 1; }
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            access-tokens = github.com=${{ github.token }}
+      - name: Build
+        run: nix build -L .#default 2>&1 | tee nix-build.log
+        shell: bash -o pipefail {0}
+      - name: Smoke test
+        run: test -x result/bin/ruumble-client && test -f result/share/applications/ruumble-client.desktop
+      - name: Show the right hash
+        if: failure()
+        run: |
+          if grep -q "hash mismatch" nix-build.log; then
+            got="$(grep -A2 "hash mismatch" nix-build.log | sed -n 's/.*got: *//p' | head -1)"
+            echo "::error title=nix/mumble-src.json::the source hash changed, put $got into nix/mumble-src.json"
+          fi

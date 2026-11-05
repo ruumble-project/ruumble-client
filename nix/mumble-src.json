@@ -1,0 +1,8 @@
+{
+  "rev": "v1.6.870",
+  "hash": "sha256-FpZbFY/RvQOEDQAXkm1f5Oy00UUG11Az7LJnWfoinOM=",
+  "ixwebsocket": {
+    "rev": "v12.0.1",
+    "hash": "sha256-2QWIpLVIs2vGuMEhewDyihYdDQBz7SsOtfZ6pE67j2Q="
+  }
+}
