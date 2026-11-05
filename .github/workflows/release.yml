@@ -1,10 +1,9 @@
 name: Release
 
 # Pushing a tag v<version> (VERSION, tools/release.sh) builds the AppImage, the native packages (.deb for Debian 12
-# and Ubuntu 24.04, .rpm for Fedora, Arch Linux package), each in its own container, and the Windows zip
-# (windows.yml) in parallel, and creates the GitHub release with all
-# of them and SHA256SUMS; the notes are the version's section in CHANGELOG.md. No release unless every Linux build
-# succeeds; a failed Windows build does not block it (the release then has no Windows zip and says so).
+# and Ubuntu 24.04, .rpm for Fedora, Arch Linux package), each in its own container, in parallel, and creates the
+# GitHub release with all of them and SHA256SUMS; the notes are the version's section in CHANGELOG.md. No release
+# unless every build succeeds. Windows is not supported (dropped by the team after 0.35.1).
 # Started manually it is a dry run: it builds everything and uploads it as a workflow artifact, no release.
 on:
   push:
@@ -68,15 +67,9 @@ jobs:
             dist/*.pkg.tar.zst
           if-no-files-found: error
 
-  windows:
-    needs: version
-    uses: ./.github/workflows/windows.yml
-
   release:
     name: GitHub release
-    needs: [version, build, windows]
-    # Windows does not block a release: without its zip the release says that Windows follows later
-    if: ${{ !cancelled() && needs.version.result == 'success' && needs.build.result == 'success' }}
+    needs: [version, build]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -98,13 +91,6 @@ jobs:
           mkdir -p assets
           cp dist/Ruumble_Client-x86_64.AppImage "assets/Ruumble_Client-$VERSION-x86_64.AppImage"
           cp dist/*.deb dist/*.rpm dist/*.pkg.tar.zst assets/
-          windows=0
-          if [ -f dist/Ruumble_Client-x86_64-windows.zip ]; then
-            cp dist/Ruumble_Client-x86_64-windows.zip "assets/Ruumble_Client-$VERSION-windows-x64.zip"
-            windows=1
-          else
-            echo "::warning::no Windows build in this release"
-          fi
           (cd assets && sha256sum * > SHA256SUMS)
           cat assets/SHA256SUMS
           deb12="$(cd assets && ls ruumble-client_*+debian12_*.deb)"
@@ -123,11 +109,6 @@ jobs:
             echo "- **Fedora:** \`sudo dnf install ./$rpm\`"
             echo "- **Arch Linux:** \`sudo pacman -U $arch\`"
             echo "- **NixOS / Nix:** \`nix run github:$GITHUB_REPOSITORY/v$VERSION\`, or the flake in a NixOS configuration (\`programs.ruumble-client.enable = true;\`, see the README)"
-            if [ "$windows" = 1 ]; then
-              echo "- **Windows 10/11 (x64):** unpack \`Ruumble_Client-$VERSION-windows-x64.zip\` and start \`ruumble-client.exe\` (not signed yet: Windows SmartScreen asks once)."
-            else
-              echo "- **Windows:** not in this release yet, it follows with a later one."
-            fi
             echo "- **Any other distribution:** \`Ruumble_Client-$VERSION-x86_64.AppImage\`, one file with Qt and Qt WebEngine inside (\`chmod +x\`, then start it)."
             echo
             echo "The packages replace an installed \`ruumble-desk\`. It needs a Ruumble service: [ruumble-server](https://github.com/ruumble-project/ruumble-server/releases)."

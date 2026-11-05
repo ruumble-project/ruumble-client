@@ -40,11 +40,10 @@ Pushing the tag `v<version>` starts **Release** (`.github/workflows/release.yml`
 | `ruumble-client_<version>+debian12_amd64.deb`, `..._+ubuntu2404_amd64.deb` | `./package.sh package --distro debian12` / `ubuntu2404` |
 | `ruumble-client-<version>-1.fc<NN>.x86_64.rpm` | `./package.sh package --distro fedora` |
 | `ruumble-client-<version>-1-x86_64.pkg.tar.zst` | `./package.sh package --distro arch` |
-| `Ruumble_Client-<version>-windows-x64.zip` | `.github/workflows/windows.yml` (`packaging/windows/build.sh`) |
 | `SHA256SUMS` | the release job |
 
-The release appears only when every Linux build succeeded. **Windows does not block it**: if its build fails, the
-release comes without the zip and the notes say that Windows follows later. NixOS needs no asset: the tag itself is
+The release appears only when every build succeeded. There is no Windows build: the team dropped Windows after
+0.35.1. NixOS needs no asset: the tag itself is
 the pinned version (`nix run github:ruumble-project/ruumble-client/v<version>`); the notes name it.
 
 Started by hand (Actions, *Release*, *Run workflow*) it is a dry run: everything is built and uploaded as a workflow
@@ -57,7 +56,7 @@ gh run list --workflow release.yml --limit 1
 gh release view v<version>
 ```
 
-Expected: the release "Ruumble Client <version>" with the assets above (Windows only if its build succeeded).
+Expected: the release "Ruumble Client <version>" with the assets above.
 
 ## When the workflow failed
 

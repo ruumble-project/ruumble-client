@@ -57,8 +57,7 @@ kill $(cat test/.work/desk-Anna.pid); test/local-stack.sh down
 ./package.sh package --distro debian12       # packaging touched (also ubuntu2404, fedora, arch, appimage as fitting)
 ```
 
-The Windows build cannot run locally: if `packaging/windows/` or Windows-specific code changed, push the branch under a
-name starting with `windows` (or start `windows.yml` by hand) and check the result. Check every acceptance criterion.
+Check every acceptance criterion.
 
 ## 6. Commit and push
 

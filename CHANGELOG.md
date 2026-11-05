@@ -7,6 +7,10 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Removed
+
+- Windows: no Windows zip in the releases any more, the team dropped Windows support; Ruumble Client is for Linux (packages, AppImage, NixOS)
+
 ## [0.35.1] - 2026-11-05
 
 ### Added

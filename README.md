@@ -74,7 +74,7 @@ kept in `patches/upstream` and applied before our touch points (`tools/prepare.s
 
 Releases (details and when to release: [docs/releasing.md](docs/releasing.md)): `tools/release.sh <version>` bumps
 `VERSION` and `CHANGELOG.md`; pushing the tag `v<version>` builds the
-AppImage, both .deb, the .rpm, the Arch package and the Windows zip in parallel in GitHub Actions (`.github/workflows/release.yml`) and attaches
+AppImage, both .deb, the .rpm and the Arch package in parallel in GitHub Actions (`.github/workflows/release.yml`) and attaches
 them to this repo's GitHub release.
 
 ## NixOS and Nix
@@ -116,11 +116,8 @@ The build is `nix/package.nix`; `nix/mumble-src.json` pins the Mumble and IXWebS
 
 ## Windows
 
-The Windows build runs only in GitHub Actions (`.github/workflows/windows.yml`, script `packaging/windows/build.sh`):
-MSVC, Qt with WebEngine from `install-qt-action`, the other libraries from vcpkg (`packaging/windows/vcpkg.json`).
-Mumble supports only static builds on Windows, but Qt WebEngine needs shared Qt, so this is a shared build of its own.
-The result is a zip with `ruumble-client.exe`, its DLLs and Qt WebEngine; it is not signed yet. The workflow runs for
-every release, on pushes to branches named `windows*` and by hand.
+Not supported: the team dropped Windows after 0.35.1 (the last release with a Windows zip). The build that made it
+is in the git history (`.github/workflows/windows.yml`, `packaging/windows/`, removed after `v0.35.1`).
 
 `tools/appimage.sh` (also `./build.sh --appimage`, without container) downloads `linuxdeploy` and its Qt plugin
 (pinned versions) into `work/appimage/tools` on first use.

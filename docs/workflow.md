@@ -10,7 +10,7 @@ What is different here:
 
 ## Where a ticket goes
 
-Tickets about the desktop program, its packages (AppImage, .deb, .rpm, Arch, Windows), Mumble updates and the
+Tickets about the desktop program, its packages (AppImage, .deb, .rpm, Arch), Mumble updates and the
 Mumble patch belong here. The web UI shown inside the client (`web/src/lib/desk/`, `web/src/lib/ui/desk/`), the plugin
 core and the service live in ruumble-server: a change there gets a ticket in that repo, linked from here.
 
@@ -24,7 +24,6 @@ side merged first and compatible with released clients, then the client.
 | `client/`, `patches/`, `tools/` | `./build.sh`, then start it: `tools/run.sh` (or headless: `test/local-stack.sh up` and `test/run-desk.sh Anna fresh`, see `test/README.md`) |
 | Mumble patch (`patches/mumble`) | edit in `work/mumble`, then `tools/export-patches.sh`; never edit the patch file by hand |
 | packaging (`packaging/`, `package.sh`) | `./package.sh package --distro <debian12, ubuntu2404, fedora or arch>` or `./package.sh appimage` |
-| Windows build (`packaging/windows/`) | push: `.github/workflows/windows.yml` runs on `main`, on branches named `windows*` and on pull requests that touch it, or start it by hand under Actions |
 | `server/` submodule | a commit of its own, "Ruumble <version> as server/", after the server release |
 
 CI builds the client and the Debian 12 package on every push to `main` and every pull request (`.github/workflows/ci.yml`).

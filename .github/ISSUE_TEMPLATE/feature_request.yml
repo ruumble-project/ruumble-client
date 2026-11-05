@@ -20,7 +20,7 @@ body:
       label: Acceptance criteria
       description: What must be true when this is done? One checkable statement per line. The team fills this in before work starts.
       placeholder: |
-        - [ ] Ctrl+, opens the settings on Windows as well
+        - [ ] Ctrl+, opens the settings from the panel as well
         - [ ] The shortcut is listed in the help
   - type: textarea
     id: context

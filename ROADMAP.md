@@ -125,6 +125,8 @@ real desktop (layout of view and user dock, first-start audio wizard).
 - [x] Windows (Kevin, 2026-11-05): own shared build in GitHub Actions (`windows.yml`, `packaging/windows/`), zip with
       Qt WebEngine; not signed. Needed: Mumble's xboxinput and gkey on, the core's net.h by full path (Mumble's Net.h),
       protobuf and abseil static and C++20 (own vcpkg triplet). Started on real Windows: still open. macOS: not covered
+- [x] Windows dropped (team decision, 2026-11-05): 0.35.1 is the last release with a Windows zip; `windows.yml` and
+      `packaging/windows/` removed, the release builds Linux only
 
 ## M8: Ruumble moves into this repo (Kevin, 2026-11-04, agreed with Bert)
 
@@ -220,7 +222,7 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
 
 - Phase 2: immediate refusal signal from `msgPermissionDenied` (upstream candidate)
 - Update routine onto new Mumble tags (rebase, `git rerere`)
-- Packaging (AppImage, Windows installer), CI
+- Packaging (AppImage), CI
 - Screen sharing (SFU; needs Qt newer than 6.4 for the screen picker)
 - Formal decision on ADR-0024 D1 to D10
 
