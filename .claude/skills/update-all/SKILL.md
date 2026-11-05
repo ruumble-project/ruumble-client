@@ -36,6 +36,8 @@ tools/update-mumble.sh <tag>      # ~10 to 20 min: clone, 3-way apply, build; ru
 - Rules (from `CLAUDE.md`): Mumble touch points stay minimal and under `#ifdef USE_RUUMBLE`; never change Mumble's
   behaviour beyond that; `work/` is scratch, only `patches/mumble` and `client/` are kept.
 - If `MumblePlugin.h` changed between the tags, check `client/QtMumbleApi.*`.
+- `nix/mumble-src.json` now names the new tag, but its `hash` is still the old one: push the branch and take the right
+  hash from the CI job "Nix" (annotation "the source hash changed"), or run `nix build` where Nix is installed.
 - Add a line under `## [Unreleased]` in `CHANGELOG.md` ("Built on Mumble <tag>") and tick a line in `ROADMAP.md`.
 
 If Mumble is already current, say so and go on with the checks (they still prove the tree is healthy).

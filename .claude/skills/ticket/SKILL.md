@@ -1,12 +1,12 @@
 ---
 name: ticket
-description: Works on a GitHub issue of ruumble-client from start to pull request - reads the ticket with its comments and acceptance criteria, checks it against the code, asks back when something is unclear, creates the branch <issue>-<slug>, implements, builds and runs the client, updates changelog and docs, commits and opens the pull request with "Closes #<issue>". Use when someone says "/ticket 42", "arbeite Ticket 42 ab", "work on issue 42", "mach #42" or names an issue URL of ruumble-client.
+description: Works on a GitHub issue of ruumble-client from start to a pushed commit on main - reads the ticket with its comments and acceptance criteria, checks it against the code, asks back when something is unclear, implements, builds and runs the client, updates changelog and docs, commits and pushes to main with "(fixes #<issue>)", or opens a pull request when asked. Use when someone says "/ticket 42", "arbeite Ticket 42 ab", "work on issue 42", "mach #42" or names an issue URL of ruumble-client.
 ---
 
 # Work on a ticket
 
 The team flow is `docs/workflow.md` (which refers to ruumble-server's); this skill follows it. Ask only when a decision
-is really the person's (see "Stop and ask"); otherwise work through to the pull request.
+is really the person's (see "Stop and ask"); otherwise work through to the pushed commit.
 
 ## 1. Read the ticket
 
@@ -27,13 +27,15 @@ gh issue view <n> --comments
 - Mumble touch point needed? Keep it minimal, under `#ifdef USE_RUUMBLE`, everything else in `client/`.
 - Give a short plan (files, how to check it, open points) before writing code when it is more than a few lines.
 
-## 3. Branch
+## 3. Start on main
 
 ```sh
 git switch main && git pull --ff-only && git submodule update --init
-git switch -c <n>-<short-slug>
 gh issue edit <n> --add-assignee @me
 ```
+
+The team works on `main` directly. Only when the person wants a pull request (or several people work on the
+ticket at once): `git switch -c <n>-<short-slug>`.
 
 The working tree must be clean first; if not, show it and ask.
 
@@ -58,21 +60,21 @@ kill $(cat test/.work/desk-Anna.pid); test/local-stack.sh down
 The Windows build cannot run locally: if `packaging/windows/` or Windows-specific code changed, push the branch under a
 name starting with `windows` (or start `windows.yml` by hand) and check the result. Check every acceptance criterion.
 
-## 6. Commit, push, pull request
+## 6. Commit and push
 
-- Commits: English, one line, ending with `(#<n>)`.
+- Commits: English, one line, ending with `(#<n>)`; the last one, which completes the ticket, with `(fixes #<n>)`.
 - Personal settings that forbid pushing win: then stop here and name the commands below.
 
 ```sh
-git push -u origin HEAD
-gh pr create --title "<what it does> (#<n>)" --body-file <file>
+git push                                   # on main: done, CI runs on main
 ```
 
-The body follows `.github/pull_request_template.md`: `Closes #<n>`, what and why, how it was tested, the checks ticked.
+Only when a pull request was asked for: `git push -u origin HEAD` on the branch, then
+`gh pr create --title "<what it does>" --body-file <file>` (no number in the title, GitHub adds the PR number). The body follows `.github/pull_request_template.md`: `Closes #<n>`, what and why, how it was tested, the checks ticked.
 
 ## 7. Report
 
-Short, in the person's language: the PR link, what was done per acceptance criterion, the checks, what only a person
+Short, in the person's language: the commit (or PR link), what was done per acceptance criterion, the checks, what only a person
 can check (start it on the desktop, speak, quit through the menu), follow-ups in ruumble-server.
 
 ## Stop and ask
