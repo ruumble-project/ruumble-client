@@ -14,12 +14,10 @@ Ruumble is edited in its own repo, never in `server/`; this repo only moves the 
 New Mumble releases: "Update alles" runs the skill `.claude/skills/update-all` (`tools/update-mumble.sh`, fixes,
 all checks).
 
-Team workflow (`docs/workflow.md`, ADR-0026 in ruumble-server): every change starts with a GitHub issue, gets a branch
-`<issue>-<slug>` from `main`, one-line English commits ending with `(#<issue>)`, and reaches `main` only through a pull
-request (template, `Closes #<issue>`, green CI, squash merge; no approval needed inside the team, see "Team and
-GitHub"). Claude commits on the ticket branch and pushes or opens the pull request only when asked
-(the `/ticket` skill counts as asked; personal settings that forbid pushing win). Skills: `/ticket`, `/new-ticket`,
-`/update-all`. No em or en dashes anywhere; code, comments and docs in English.
+Team workflow (`docs/workflow.md`, ADR-0026 in ruumble-server, section "Team and GitHub" below): tickets for the
+overview, the team commits and pushes to `main` directly after the checks, pull requests only when someone wants a
+second look or for outside contributors. Skills: `/ticket`, `/new-ticket`, `/update-all`. No em or en dashes anywhere;
+code, comments and docs in English.
 
 Progress lives in `ROADMAP.md`: tick off every finished item right away (`[x]`, `[~]` in progress) and add notes,
 so Kevin or the next session can continue at any point.
@@ -79,23 +77,25 @@ Several people work on this repo, each with their own Claude Code; these rules h
 personal settings say about style. The full flow is `docs/workflow.md`.
 
 - **Start of a session**: `gh auth status` (the skills need the GitHub CLI; if it is not logged in, ask the person to
-  run `gh auth login`), `git status`, and which branch is checked out. Work on `main` only to pull it.
-- **One ticket, one branch**: `<issue>-<slug>` from an up-to-date `main`. No ticket yet: offer `/new-ticket` first.
-  Skills: `/ticket <n>` works an issue to a pull request, `/new-ticket` writes one.
-- **`main` is protected** by a ruleset: no force pushes, no deletion, merges through a pull request with the
-  required checks green (`Build (Debian 12 package)`; the Windows build (`windows.yml`) runs on
-  pull requests that touch `client/`, `patches/` or `packaging/windows/` and on branches named `windows*`, and must be
-  green there too). Only squash merge is allowed: the pull
-  request title becomes the one commit on `main` (body left empty), so the title is one line in English without a
-  number: GitHub adds the pull request number, `Closes #<issue>` in the body links the ticket. Merged branches are deleted automatically.
-- **Who the rules bind**: the team (roles admin, maintain, write: Kevin, Simon, Bert) may bypass the ruleset: no
-  approval is needed, authors merge their own pull requests, small obvious changes may go to `main` directly. Outside
-  contributors have no write access: they work from a fork, and their pull requests need the checks and a team member
-  to merge.
-- **Claude does not use the bypass**: it works on a branch and opens a pull request, even when the account could push
-  to `main`. Merging (one click once CI is green) or a direct push is done by the person. Never force-push.
-- **Pushing and pull requests** only when the person asks (the `/ticket` skill counts as asked). Never merge a pull
-  request, approve your own, or close someone else's ticket; that is for people.
+  run `gh auth login`), `git status`, the checked-out branch, and `git pull --ff-only` on `main`.
+- **Tickets** keep the overview: work that takes more than a few minutes has a GitHub issue; offer `/new-ticket` when
+  there is none. Skills: `/ticket <n>` works an issue to a commit on `main`, `/new-ticket` writes one.
+- **The team works on `main` directly** (Kevin, Simon, Bert; GitHub roles admin, maintain, write): pull, commit, run
+  the checks (`./build.sh` and a start of the client (plus a package build when packaging changed)), push. No pull request and no approval needed. Commits are one line in English, ending
+  with `(#<issue>)`; the commit that completes a ticket ends with `(fixes #<issue>)`, so GitHub closes it. CI runs on
+  every push to `main`; if it turns red, fixing it comes first.
+- **Pull requests are optional** inside the team: open one when the person wants a second look (bigger changes,
+  something risky), on a branch `<issue>-<slug>`; the author merges with *Squash and merge* once CI is green (the
+  title, one line without a number, becomes the commit; GitHub adds the PR number). Several people working on the
+  same ticket at once also use a branch.
+- **What GitHub enforces** (ruleset on `main`): no force pushes, no deletion of `main`; everyone else (outside
+  contributors without write access, working from a fork) needs a pull request with the required checks green
+  (`Build (Debian 12 package)`; `windows.yml` and `nix.yml` also
+  run when their parts change) and a team member to merge it. The team roles bypass this.
+- **Claude** pushes to `main` when it works for a team member and the checks pass; it never force-pushes and never
+  rewrites published history. Pushing counts as asked when the person asked for the change or used `/ticket`;
+  personal settings that forbid pushing win (then name the commands instead). A rejected push means the account is not
+  in the team: push a branch and open a pull request instead.
 - **Labels**: `bug`, `enhancement`, `task` (kind), `client`, `web`, `service`, `plugin`, `ops` (part), `needs-decision`
   and `blocked` (do not start), `good first issue`. Ask before working on a ticket assigned to someone else.
 - **Writing style** in everything committed: English, no em or en dashes (use a hyphen with spaces, a colon or a new
