@@ -52,6 +52,7 @@ private:
 		quint64 key       = 0; // hides the timestamp from the server, like Mumble does
 		qint64 firstSent  = -1;
 		qint64 lastAnswer = -1;
+		bool logged       = false; // the first answer or the silence is logged once
 	};
 
 	void tick();

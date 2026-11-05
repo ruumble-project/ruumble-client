@@ -2,6 +2,7 @@
 
 #include "Version.h"
 
+#include <QtCore/QDebug>
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QTimer>
 #include <QtNetwork/QHostInfo>
@@ -46,7 +47,10 @@ void ServerPing::setTargets(const QStringList &targets) {
 
 void ServerPing::start() {
 	if (m_socket->state() != QAbstractSocket::BoundState) {
-		m_socket->bind(QHostAddress::Any); // dual stack: IPv4 and IPv6
+		// dual stack: IPv4 and IPv6
+		if (!m_socket->bind(QHostAddress::Any)) {
+			qWarning().noquote() << "Ruumble City Map: ping socket not bound:" << m_socket->errorString();
+		}
 	}
 	m_timer->start();
 	tick();
@@ -80,6 +84,7 @@ void ServerPing::tick() {
 					}
 					found->resolving = false;
 					if (info.error() != QHostInfo::NoError || info.addresses().isEmpty()) {
+						qInfo().noquote() << "Ruumble City Map: ping" << id << "- name not resolved:" << info.errorString();
 						found->failed     = true;
 						Result &r         = m_results[id];
 						r.gaveUp          = true;
@@ -88,6 +93,11 @@ void ServerPing::tick() {
 					}
 					// all of them: a server may answer on IPv6 only (or IPv4 only), Mumble's list pings every address too
 					found->addresses = info.addresses();
+					QStringList list;
+					for (const QHostAddress &a : found->addresses) {
+						list << a.toString();
+					}
+					qInfo().noquote() << "Ruumble City Map: ping" << id << "to" << list.join(QLatin1String(", "));
 					send(*found);
 				});
 				continue;
@@ -98,6 +108,10 @@ void ServerPing::tick() {
 		const qint64 now = m_clock.elapsed();
 		const qint64 since = t.lastAnswer >= 0 ? t.lastAnswer : t.firstSent;
 		const bool gaveUp = since >= 0 && now - since > kGiveUpMs;
+		if (gaveUp && !t.logged) {
+			t.logged = true;
+			qInfo().noquote() << "Ruumble City Map: ping" << id << "- no answer for" << kGiveUpMs / 1000 << "s";
+		}
 		if (gaveUp != r.gaveUp) {
 			r.gaveUp = gaveUp;
 			if (gaveUp) {
@@ -172,6 +186,11 @@ void ServerPing::read() {
 			const qint64 sent = static_cast< qint64 >(data.timestamp ^ t.key);
 			if (sent < 0 || sent > now) {
 				continue; // not one of ours
+			}
+			if (!t.logged) {
+				t.logged = true;
+				qInfo().noquote() << "Ruumble City Map: ping" << it.key() << "- answer from" << host.toString() << "in"
+								  << (now - sent) << "ms," << data.userCount << "/" << data.maxUserCount << "visitors";
 			}
 			t.lastAnswer = now;
 			Result &r    = m_results[it.key()];
