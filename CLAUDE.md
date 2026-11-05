@@ -46,7 +46,7 @@ Works well **on this machine**: phases 0 and 1 of the ADR plus "Ruumble UI as ho
 
 Working assumptions from the ADR (the owner said "just do it"; the ADR stays a draft): own settings dir and name
 "Ruumble Client", UI loaded from the service URL, Mumble 1.6 only. Not in scope: phase 2, screen sharing (needs Qt
-newer than 6.4), Windows (dropped by the team after 0.35.1, no Windows build any more). The AppImage is built by `.github/workflows/release.yml` (version in `VERSION`, `tools/release.sh`).
+newer than 6.4), Windows (dropped by the team, no release ever had a Windows build). The AppImage is built by `.github/workflows/release.yml` (version in `VERSION`, `tools/release.sh`).
 
 ## Code rules
 

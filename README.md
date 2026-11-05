@@ -127,8 +127,9 @@ The build is `nix/package.nix`; `nix/mumble-src.json` pins the Mumble and IXWebS
 
 ## Windows
 
-Not supported: the team dropped Windows after 0.35.1 (the last release with a Windows zip). The build that made it
-is in the git history (`.github/workflows/windows.yml`, `packaging/windows/`, removed after `v0.35.1`).
+Not supported: the team dropped Windows; no release ever had a Windows zip (0.35.0's Windows build failed, 0.35.1 was
+never published). The build is in the git history (`.github/workflows/windows.yml`, `packaging/windows/`, removed in
+`7591f4e`).
 
 `tools/appimage.sh` (also `./build.sh --appimage`, without container) downloads `linuxdeploy` and its Qt plugin
 (pinned versions) into `work/appimage/tools` on first use.

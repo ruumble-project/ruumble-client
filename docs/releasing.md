@@ -42,8 +42,7 @@ Pushing the tag `v<version>` starts **Release** (`.github/workflows/release.yml`
 | `ruumble-client-<version>-1-x86_64.pkg.tar.zst` | `./package.sh package --distro arch` |
 | `SHA256SUMS` | the release job |
 
-The release appears only when every build succeeded. There is no Windows build: the team dropped Windows after
-0.35.1. NixOS needs no asset: the tag itself is
+The release appears only when every build succeeded. There is no Windows build: the team dropped Windows (no release ever had one). NixOS needs no asset: the tag itself is
 the pinned version (`nix run github:ruumble-project/ruumble-client/v<version>`); the notes name it.
 
 Started by hand (Actions, *Release*, *Run workflow*) it is a dry run: everything is built and uploaded as a workflow
