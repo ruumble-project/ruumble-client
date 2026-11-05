@@ -38,6 +38,15 @@ CI builds the client and the Debian 12 package on every pull request (`.github/w
 
 ## Working with Claude Code
 
+What every Claude instance gets from the repo, so all colleagues work the same way:
+
+- `CLAUDE.md`, section "Team and GitHub": the rules of this flow and what GitHub enforces (protected `main`, required
+  checks, squash merge, labels, never the admin bypass).
+- `.claude/settings.json`: shared permissions. Reading git history, tickets, pull requests and workflow runs works
+  without asking; force pushes, pushes to `main`, merging and approving pull requests are denied. Personal additions
+  go into `.claude/settings.local.json` (not committed) or `~/.claude/settings.json`.
+- `.claude/skills/`: `/ticket`, `/new-ticket`, `/update-all`.
+
 `/ticket 42` and `/new-ticket <description>` work here as in ruumble-server (skills in `.claude/skills/`); `/update-all`
 takes over a new Mumble release. They need the GitHub CLI (`gh auth login`).
 

@@ -72,3 +72,28 @@ sudo apt install build-essential cmake ninja-build pkgconf qt6-base-dev qt6-tool
 - Mumble in Docker sees the host as the Docker gateway (172.x): the local service runs with `ADDRESS_CHECK=warn`.
 - Headless tests (`test/run-desk.sh`) use an isolated HOME; Playwright cannot attach to QtWebEngine, `test/cdp.mjs`
   speaks raw CDP. Rooms are entered by double-click.
+
+## Team and GitHub (read before any git or gh action)
+
+Several people work on this repo, each with their own Claude Code; these rules hold for every instance, whatever the
+personal settings say about style. The full flow is `docs/workflow.md`.
+
+- **Start of a session**: `gh auth status` (the skills need the GitHub CLI; if it is not logged in, ask the person to
+  run `gh auth login`), `git status`, and which branch is checked out. Work on `main` only to pull it.
+- **One ticket, one branch**: `<issue>-<slug>` from an up-to-date `main`. No ticket yet: offer `/new-ticket` first.
+  Skills: `/ticket <n>` works an issue to a pull request, `/new-ticket` writes one.
+- **`main` is protected** by a ruleset: no direct pushes, no force pushes, no deletion; merges only through a pull
+  request with one approval and the required checks green (`Build (Debian 12 package)`; the Windows build (`windows.yml`) runs on
+  pull requests that touch `client/`, `patches/` or `packaging/windows/` and on branches named `windows*`, and must be
+  green there too). Only squash merge is allowed: the pull
+  request title becomes the one commit on `main` (body left empty), so the title is one line in English ending with
+  `(#<issue>)`. Merged branches are deleted automatically.
+- **Never use the admin bypass**, even if the account has it. Only the maintainer's release commit (`tools/release.sh`)
+  goes to `main` directly. If a push to `main` is rejected, that is the rule working: push a branch and open a pull
+  request instead.
+- **Pushing and pull requests** only when the person asks (the `/ticket` skill counts as asked). Never merge a pull
+  request, approve your own, or close someone else's ticket; that is for people.
+- **Labels**: `bug`, `enhancement`, `task` (kind), `client`, `web`, `service`, `plugin`, `ops` (part), `needs-decision`
+  and `blocked` (do not start), `good first issue`. Ask before working on a ticket assigned to someone else.
+- **Writing style** in everything committed: English, no em or en dashes (use a hyphen with spaces, a colon or a new
+  sentence), commit messages one line without trailers.
