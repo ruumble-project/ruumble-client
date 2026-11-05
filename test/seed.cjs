@@ -1,4 +1,4 @@
-// Test data for a manual check of Ruumble Desk on the LOCAL test server (local-stack.sh up):
+// Test data for a manual check of Ruumble Client on the LOCAL test server (local-stack.sh up):
 //   - room descriptions (the binders in rooms and corridors)
 //   - everyone may administer the building (create, remove, move rooms and people, ACL, kick, ban), so the
 //     right-click menus and drag and drop can be tried with throwaway test users. Never run this against a real server.

@@ -24,7 +24,7 @@ jobs:
           set -euo pipefail
           pinned="$(sed -nE 's/^MUMBLE_REF=\$\{MUMBLE_REF:-([^}]+)\}$/\1/p' pins.env)"
           latest="$(gh api repos/mumble-voip/mumble/releases/latest --jq .tag_name)"
-          echo "Ruumble Desk $pinned, latest release $latest"
+          echo "Ruumble Client $pinned, latest release $latest"
           newest="$(printf '%s\n%s\n' "$pinned" "$latest" | sort -V | tail -1)"
           if [[ "$latest" == "$pinned" ]] || [[ "$newest" != "$latest" ]]; then exit 0; fi
 
@@ -33,7 +33,7 @@ jobs:
             echo "Issue already exists."; exit 0
           fi
           {
-            echo "A new Mumble release is available: **$latest** (Ruumble Desk is built on $pinned)."
+            echo "A new Mumble release is available: **$latest** (Ruumble Client is built on $pinned)."
             echo
             echo "To take it over: say **\"Update alles\"** in Claude Code in this repo (skill \`.claude/skills/update-all\`), or run \`tools/update-mumble.sh $latest\` by hand."
           } > /tmp/body.md

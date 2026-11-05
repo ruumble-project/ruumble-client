@@ -1,6 +1,6 @@
 # CLAUDE.md: ruumble-client
 
-Ruumble Desk is a Mumble client with Ruumble built in (pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
+Ruumble Client is a Mumble client with Ruumble built in (pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
 This repo is `ruumble-project/ruumble-client`. Ruumble itself (service, web UI, plugin) is `ruumble-project/ruumble-server`,
 pinned here as the git submodule `server/` (ADR-0025 in `server/docs/decisions/`); its rules are in `server/CLAUDE.md`.
 After cloning: `git submodule update --init`.
@@ -38,7 +38,7 @@ Works well **on this machine**: phases 0 and 1 of the ADR plus "Ruumble UI as ho
   the contract compatible: released clients meet newer services and the other way round.
 
 Working assumptions from the ADR (the owner said "just do it"; the ADR stays a draft): own settings dir and name
-"Ruumble Desk", UI loaded from the service URL, Mumble 1.6 only. Not in scope: phase 2, screen sharing (needs Qt
+"Ruumble Client", UI loaded from the service URL, Mumble 1.6 only. Not in scope: phase 2, screen sharing (needs Qt
 newer than 6.4), Windows. The AppImage is built by `.github/workflows/release.yml` (version in `VERSION`, `tools/release.sh`).
 
 ## Code rules

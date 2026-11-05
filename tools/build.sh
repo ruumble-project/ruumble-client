@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the Ruumble Desk client (client only, no server) into work/build.
+# Builds the Ruumble Client client (client only, no server) into work/build.
 set -eu
 source "$(dirname "$0")/common.sh"
 "$ROOT/tools/prepare.sh" >/dev/null # creates the work tree once, refreshes the client link

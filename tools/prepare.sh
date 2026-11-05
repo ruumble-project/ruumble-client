@@ -10,11 +10,11 @@ if [ ! -d "$WM/.git" ]; then
   if [ -n "$MUMBLE_REPO" ] && src=$(abs "$MUMBLE_REPO") && [ -d "$src/.git" ]; then
     echo "== Mumble $MUMBLE_REF from $src"
     git clone -q --no-checkout "$src" "$WM"
-    git -C "$WM" checkout -q -B ruumble-desk "$MUMBLE_REF"
+    git -C "$WM" checkout -q -B ruumble-client "$MUMBLE_REF"
   else
     echo "== Mumble $MUMBLE_REF from $MUMBLE_URL"
     git clone -q --depth 1 --branch "$MUMBLE_REF" "$MUMBLE_URL" "$WM"
-    git -C "$WM" checkout -q -B ruumble-desk
+    git -C "$WM" checkout -q -B ruumble-client
   fi
   git -C "$WM" submodule update --init --recursive -q
   git -C "$WM" apply --whitespace=nowarn "$ROOT"/patches/mumble/*.patch

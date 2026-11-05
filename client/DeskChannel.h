@@ -1,4 +1,4 @@
-// Ruumble Desk: what the Ruumble web UI may use of the client, over QWebChannel as object "desk".
+// Ruumble Client: what the Ruumble web UI may use of the client, over QWebChannel as object "desk".
 // Contract with web/src/lib/desk/ in ruumble-server (submodule server/):
 //   properties  version (string), server (string, "host:port" or empty while not connected)
 //   signals     logged(entry), serverChanged()

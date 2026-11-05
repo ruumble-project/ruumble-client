@@ -1,4 +1,4 @@
-// Ruumble Desk: the Ruumble web UI as the client's whole window (ADR-0024, phase 1).
+// Ruumble Client: the Ruumble web UI as the client's whole window (ADR-0024, phase 1).
 
 #ifndef MUMBLE_MUMBLE_RUUMBLE_RUUMBLEVIEW_H_
 #define MUMBLE_MUMBLE_RUUMBLE_RUUMBLEVIEW_H_

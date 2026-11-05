@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prepares a Ruumble Desk release: bumps VERSION, dates the Unreleased section of CHANGELOG.md and commits "Release <version>".
+# Prepares a Ruumble Client release: bumps VERSION, dates the Unreleased section of CHANGELOG.md and commits "Release <version>".
 #   tools/release.sh <version>      e.g. 0.34.0
 # Then push, and push the tag v<version>: .github/workflows/release.yml builds the AppImage and creates the GitHub release.
 set -euo pipefail

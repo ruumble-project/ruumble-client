@@ -1,4 +1,4 @@
-// Ruumble Desk: Ruumble built into the client (ADR-0024, phases 0 and 1).
+// Ruumble Client: Ruumble built into the client (ADR-0024, phases 0 and 1).
 // Runs Ruumble's core like the plugin does and shows the web UI as the main view.
 // The only entry points from Mumble code are the constructor (MainWindow::setupGui) and
 // attachServerHandler (MainWindow, where a ServerHandler is created).
@@ -69,10 +69,17 @@ public:
 
 	/**
 	 * Once, before the settings are loaded: takes the audio settings and the shortcuts (push-to-talk and others) of
-	 * an installed official Mumble into Ruumble Desk's own settings, which are kept apart otherwise (ADR-0024 D5).
+	 * an installed official Mumble into Ruumble Client's own settings, which are kept apart otherwise (ADR-0024 D5).
 	 * Not the mute and deaf state of its last session. A marker file next to the settings makes it run only once.
 	 */
 	static void importMumbleSettings();
+	/**
+	 * Once, from importMumbleSettings: copies the settings and data of the former name "Ruumble Desk"
+	 * (~/.config/Ruumble/Ruumble Desk, ~/.local/share/Ruumble/Ruumble Desk) into Ruumble Client's own, file by file
+	 * without overwriting. Certificate, servers, pairing and the web view's cookies come along. Marker file
+	 * ruumble-desk-taken-over next to the settings.
+	 */
+	static void takeOverDeskSettings();
 
 signals:
 	// from the core's threads to the view (queued)

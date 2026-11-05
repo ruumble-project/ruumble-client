@@ -1,6 +1,6 @@
 # Engine compatibility for older Ruumble services
 
-Ruumble Desk shows the web UI in Qt WebEngine 6.4 (Chromium 102). The web UI handles that itself since the fix of
+Ruumble Client shows the web UI in Qt WebEngine 6.4 (Chromium 102). The web UI handles that itself since the fix of
 2026-11-04 (`web/src/main.ts`, fallbacks in the CSS), but services still running an older image serve a web UI
 without it. `RuumbleView` therefore injects, only into engines that need it:
 

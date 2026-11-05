@@ -1,4 +1,4 @@
-// Ruumble Desk: ruumble::MumbleApi on top of the client's own classes (ADR-0024, phase 0).
+// Ruumble Client: ruumble::MumbleApi on top of the client's own classes (ADR-0024, phase 0).
 // Mirrors Ruumble/plugin/src/plugin.cpp, but reads ClientUser/Channel/ServerHandler directly
 // instead of going through the plugin API.
 

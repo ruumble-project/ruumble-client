@@ -1,6 +1,6 @@
 ---
 name: update-all
-description: Brings Ruumble Desk up to date in one go - takes over a new Mumble release (Mumble tag and patch, fixing conflicts and build errors), optionally moves the server submodule, then runs every check (Desk build, headless run, AppImage) and reports. Use when someone says "Update alles", "alles aktualisieren", "update everything", "Mumble aktualisieren", "neues Mumble übernehmen", or after an issue "Mumble ... available".
+description: Brings Ruumble Client up to date in one go - takes over a new Mumble release (Mumble tag and patch, fixing conflicts and build errors), optionally moves the server submodule, then runs every check (Desk build, headless run, AppImage) and reports. Use when someone says "Update alles", "alles aktualisieren", "update everything", "Mumble aktualisieren", "neues Mumble übernehmen", or after an issue "Mumble ... available".
 ---
 
 # Update everything
@@ -63,7 +63,7 @@ kill $(cat test/.work/desk-Anna.pid); test/local-stack.sh down
 ```
 
 AppImage (only Docker needed, ~6 min, background): `./package.sh appimage`, then check
-`dist/Ruumble_Desk-x86_64.AppImage` exists.
+`dist/Ruumble_Client-x86_64.AppImage` exists.
 
 A check that fails is fixed, not skipped. If a fix would change behaviour (not just follow Mumble), stop and ask.
 

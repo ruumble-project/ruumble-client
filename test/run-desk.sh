@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Starts Ruumble Desk headless (offscreen) in an isolated HOME against the local stack.
+# Starts Ruumble Client headless (offscreen) in an isolated HOME against the local stack.
 #   run-desk.sh <Name> [fresh]   fresh = wipe the test home first
 # WebEngine DevTools on 127.0.0.1:9333 (for Playwright over CDP). Log: $T/desk-<Name>.log
 set -eu
@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 user=$1
 H="$T/home-$user"
 [ "${2:-}" = fresh ] && rm -rf "$H"
-conf="$H/.config/Ruumble/Ruumble Desk"; data="$H/.local/share/Ruumble/Ruumble Desk"
+conf="$H/.config/Ruumble/Ruumble Client"; data="$H/.local/share/Ruumble/Ruumble Client"
 mkdir -p "$conf" "$data" "$H/Documents"
 
 if [ ! -f "$H/Documents/MumbleAutomaticCertificateBackup.p12" ]; then

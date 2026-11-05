@@ -19,6 +19,8 @@
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
+#include <QtCore/QDirIterator>
+#include <QtCore/QFileInfo>
 #include <QtCore/QFile>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -82,7 +84,7 @@ namespace {
 		return -1;
 	}
 
-	/** paired state and fixed address of Ruumble Desk: own file, never the plugin's plugin.json */
+	/** paired state and fixed address of Ruumble Client: own file, never the plugin's plugin.json */
 	ruumble::Config &config() {
 		static ruumble::Config c = [] {
 			if (!std::getenv("RUUMBLE_CONFIG")) {
@@ -277,7 +279,7 @@ void RuumbleIntegration::setUserListVisible(bool visible) {
 
 void RuumbleIntegration::setLogVisible(bool visible) {
 	m_logVisible = visible;
-	qInfo("Ruumble Desk: Mumble log and chat %s", visible ? "shown" : "hidden");
+	qInfo("Ruumble Client: Mumble log and chat %s", visible ? "shown" : "hidden");
 	m_mw->qdwLog->setVisible(visible);
 	m_mw->qdwChat->setVisible(visible);
 }
@@ -370,7 +372,7 @@ void RuumbleIntegration::showChannelMenu(unsigned int channelId, const QPoint &v
 			m_mw->qmChannel->addSeparator();
 			m_mw->qmChannel->addMenu(floors);
 		}
-		qInfo() << "Ruumble Desk: channel menu for" << c->qsName << actionTitles(m_mw->qmChannel);
+		qInfo() << "Ruumble Client: channel menu for" << c->qsName << actionTitles(m_mw->qmChannel);
 	});
 	m_mw->qmChannel->exec(global);
 	QObject::disconnect(extra);
@@ -385,7 +387,7 @@ void RuumbleIntegration::showUserMenu(unsigned int session, const QPoint &viewPo
 	TreeSelection selection(m_mw, m_mw->pmModel->index(user));
 	m_mw->cuContextUser = user;
 	const QMetaObject::Connection log = QObject::connect(m_mw->qmUser, &QMenu::aboutToShow, this, [this, user] {
-		qInfo() << "Ruumble Desk: user menu for" << user->qsName << actionTitles(m_mw->qmUser);
+		qInfo() << "Ruumble Client: user menu for" << user->qsName << actionTitles(m_mw->qmUser);
 	});
 	m_mw->qmUser->exec(global);
 	QObject::disconnect(log);
@@ -401,7 +403,7 @@ void RuumbleIntegration::moveUser(unsigned int session, unsigned int channelId) 
 	if (session != Global::get().uiSession) {
 		switch (Global::get().s.ceUserDrag) {
 			case Settings::Ask:
-				if (QMessageBox::question(m_mw, QLatin1String("Ruumble Desk"),
+				if (QMessageBox::question(m_mw, QLatin1String("Ruumble Client"),
 										  tr("Move %1 to %2?").arg(user->qsName, channel->qsName), QMessageBox::Yes,
 										  QMessageBox::No)
 					!= QMessageBox::Yes) {
@@ -416,7 +418,7 @@ void RuumbleIntegration::moveUser(unsigned int session, unsigned int channelId) 
 				break;
 		}
 	}
-	qInfo() << "Ruumble Desk: moving" << user->qsName << "to" << channel->qsName;
+	qInfo() << "Ruumble Client: moving" << user->qsName << "to" << channel->qsName;
 	MumbleProto::UserState mpus;
 	mpus.set_session(session);
 	mpus.set_channel_id(channelId);
@@ -453,7 +455,7 @@ void RuumbleIntegration::showMumbleMenu(const QPoint &viewPos) {
 			titles << action->menu()->title().remove(QLatin1Char('&'));
 		}
 	}
-	qDebug() << "Ruumble Desk: Mumble menu with" << titles;
+	qDebug() << "Ruumble Client: Mumble menu with" << titles;
 	m_mumbleMenu->popup(m_view->mapToGlobal(viewPos));
 }
 
@@ -461,7 +463,7 @@ void RuumbleIntegration::updateWindowTitle() {
 	const QString title = m_view->title();
 	// a page without a title shows its URL as title: then the own name
 	const bool useful = m_view->showsService() && !title.isEmpty() && !title.startsWith(QLatin1String("http"));
-	m_mw->setWindowTitle(useful ? title : QStringLiteral("Ruumble Desk"));
+	m_mw->setWindowTitle(useful ? title : QStringLiteral("Ruumble Client"));
 }
 
 void RuumbleIntegration::onAction(const QString &action) {
@@ -488,7 +490,52 @@ void RuumbleIntegration::watchTalking(unsigned int session) {
 	});
 }
 
+namespace {
+	/** copies every file of from into to that to does not have yet; mumble.lock and the console logs stay behind */
+	void copyMissing(const QString &from, const QString &to) {
+		QDirIterator it(from, QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+		while (it.hasNext()) {
+			const QString source = it.next();
+			const QString name   = it.fileName();
+			if (name == QLatin1String("mumble.lock") || name.startsWith(QLatin1String("Console"))) {
+				continue;
+			}
+			const QString target = QDir(to).filePath(QDir(from).relativeFilePath(source));
+			if (!QFile::exists(target)) {
+				QDir().mkpath(QFileInfo(target).absolutePath());
+				QFile::copy(source, target);
+			}
+		}
+	}
+} // namespace
+
+void RuumbleIntegration::takeOverDeskSettings() {
+	const QString config = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+	const QString marker = QDir(config).filePath(QStringLiteral("ruumble-desk-taken-over"));
+	const QString oldConfig = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation))
+								  .filePath(QStringLiteral("Ruumble/Ruumble Desk"));
+	if (QFile::exists(marker) || !QDir(oldConfig).exists()) {
+		return;
+	}
+	const QString data    = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+	const QString oldData = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation))
+								.filePath(QStringLiteral("Ruumble/Ruumble Desk"));
+	copyMissing(oldConfig, config);
+	if (QDir(oldData).exists()) {
+		copyMissing(oldData, data);
+	}
+	QDir().mkpath(config);
+	QFile file(marker);
+	if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+		file.write(QStringLiteral("%1 from %2 and %3\n")
+					   .arg(QDateTime::currentDateTime().toString(Qt::ISODate), oldConfig, oldData)
+					   .toUtf8());
+	}
+	qInfo("Ruumble Client: took over the settings of Ruumble Desk from %s", qPrintable(oldConfig));
+}
+
 void RuumbleIntegration::importMumbleSettings() {
+	takeOverDeskSettings(); // first, so a former Ruumble Desk keeps its own settings and does not import Mumble's
 	const QDir deskDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
 	const QString marker = deskDir.filePath(QStringLiteral("mumble-settings-imported"));
 	if (QFile::exists(marker)) {
@@ -537,7 +584,7 @@ void RuumbleIntegration::importMumbleSettings() {
 	}
 	target.insert(QStringLiteral("audio"), audio);
 
-	// shortcuts (push-to-talk among them), unless Ruumble Desk has its own already
+	// shortcuts (push-to-talk among them), unless Ruumble Client has its own already
 	if (!target.contains(QStringLiteral("shortcuts")) && source.contains(QStringLiteral("shortcuts"))) {
 		target.insert(QStringLiteral("shortcuts"), source.value(QStringLiteral("shortcuts")));
 	}
@@ -552,13 +599,13 @@ void RuumbleIntegration::importMumbleSettings() {
 	deskDir.mkpath(QStringLiteral("."));
 	QFile out(desk);
 	if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-		qWarning("Ruumble Desk: could not write %s, Mumble settings not imported", qPrintable(desk));
+		qWarning("Ruumble Client: could not write %s, Mumble settings not imported", qPrintable(desk));
 		return;
 	}
 	out.write(QJsonDocument(target).toJson(QJsonDocument::Indented));
 	out.close();
 	writeMarker(QStringLiteral("imported audio and shortcuts from ") + official);
-	qInfo("Ruumble Desk: imported audio settings and shortcuts from %s", qPrintable(official));
+	qInfo("Ruumble Client: imported audio settings and shortcuts from %s", qPrintable(official));
 }
 
 } // namespace ruumbledesk

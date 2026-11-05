@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local test stack for Ruumble Desk: Mumble server in Docker (deploy/local), Ruumble service on the host,
+# Local test stack for Ruumble Client: Mumble server in Docker (deploy/local), Ruumble service on the host,
 # both from the server submodule (server/).
 #   local-stack.sh up | down
 # The service runs on the host because the Docker image build is very slow here (npm in the container).
@@ -14,7 +14,7 @@ case "${1:-up}" in
     (cd "$RUUMBLE" && corepack pnpm install >/dev/null && corepack pnpm -F @ruumble/web build >/dev/null && corepack pnpm -F @ruumble/bridge build >/dev/null)
     (cd "$RUUMBLE/tools/live-test" && corepack pnpm install >/dev/null && corepack pnpm gen >/dev/null)
     sleep 3
-    # long root description: Mumble then only sends a hash, Ruumble Desk has to fetch the text itself (ADR-0010)
+    # long root description: Mumble then only sends a hash, Ruumble Client has to fetch the text itself (ADR-0010)
     (cd "$RUUMBLE/tools/live-test" && RUUMBLE_URL=http://127.0.0.1:64080 RUUMBLE_DESC_PAD=1 node src/setup.cjs >/dev/null)
     pkill -f "node dist/main.mjs" 2>/dev/null || true
     # setsid + all three streams redirected: the service must not hold the caller's terminal or pipe

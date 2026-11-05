@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Builds Ruumble Desk in one go and puts the program into dist/.
+# Builds Ruumble Client in one go and puts the program into dist/.
 #
-#   ./build.sh              prepare work/ (first time), build, dist/ruumble-desk
-#   ./build.sh --install    also a start menu entry "Ruumble Desk" and the command ruumble-desk (~/.local/bin)
+#   ./build.sh              prepare work/ (first time), build, dist/ruumble-client
+#   ./build.sh --install    also a start menu entry "Ruumble Client" and the command ruumble-client (~/.local/bin)
 #   ./build.sh --uninstall  removes the start menu entry and the command again (dist/ stays)
-#   ./build.sh --appimage   also dist/Ruumble_Desk-x86_64.AppImage (one file for other Linux machines, tools/appimage.sh)
+#   ./build.sh --appimage   also dist/Ruumble_Client-x86_64.AppImage (one file for other Linux machines, tools/appimage.sh)
 #
 # The program uses the Qt libraries of this system (build dependencies: CLAUDE.md), so it runs here, not on any
 # machine. Mumble is only read: tools/prepare.sh clones it into work/; Ruumble is the submodule server/.
@@ -15,10 +15,15 @@ APPS="$HOME/.local/share/applications"
 BIN="$HOME/.local/bin"
 ICONS="$HOME/.local/share/icons/hicolor/scalable/apps"
 
-uninstall() {
+remove_old_name() { # entries of the former name Ruumble Desk
   rm -f "$APPS/ruumble-desk.desktop" "$BIN/ruumble-desk" "$ICONS/ruumble-desk.svg"
+}
+
+uninstall() {
+  rm -f "$APPS/ruumble-client.desktop" "$BIN/ruumble-client" "$ICONS/ruumble-client.svg"
+  remove_old_name
   command -v update-desktop-database >/dev/null && update-desktop-database "$APPS" 2>/dev/null || true
-  echo "removed: start menu entry and command ruumble-desk"
+  echo "removed: start menu entry and command ruumble-client"
 }
 
 case "${1:-}" in
@@ -32,31 +37,32 @@ esac
 
 # dist/: the program, its icon and a desktop entry pointing at it
 mkdir -p "$DIST"
-install -m 755 "$ROOT/work/build/mumble" "$DIST/ruumble-desk"
-install -m 644 "$ROOT/server/web/public/icon.svg" "$DIST/ruumble-desk.svg"
-cat > "$DIST/ruumble-desk.desktop" <<EOF
+install -m 755 "$ROOT/work/build/mumble" "$DIST/ruumble-client"
+install -m 644 "$ROOT/server/web/public/icon.svg" "$DIST/ruumble-client.svg"
+cat > "$DIST/ruumble-client.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=Ruumble Desk
+Name=Ruumble Client
 GenericName=Voice chat with the Ruumble building
 Comment=Mumble client with Ruumble built in
-Exec="$DIST/ruumble-desk"
-Icon=ruumble-desk
+Exec="$DIST/ruumble-client"
+Icon=ruumble-client
 Terminal=false
 Categories=Network;Chat;
-StartupWMClass=ruumble-desk
+StartupWMClass=ruumble-client
 EOF
-echo "program: $DIST/ruumble-desk"
+echo "program: $DIST/ruumble-client"
 
 if [ "${1:-}" = --install ]; then
   mkdir -p "$APPS" "$BIN" "$ICONS"
-  install -m 644 "$DIST/ruumble-desk.svg" "$ICONS/ruumble-desk.svg"
-  install -m 644 "$DIST/ruumble-desk.desktop" "$APPS/ruumble-desk.desktop"
-  ln -sfn "$DIST/ruumble-desk" "$BIN/ruumble-desk"
+  remove_old_name
+  install -m 644 "$DIST/ruumble-client.svg" "$ICONS/ruumble-client.svg"
+  install -m 644 "$DIST/ruumble-client.desktop" "$APPS/ruumble-client.desktop"
+  ln -sfn "$DIST/ruumble-client" "$BIN/ruumble-client"
   command -v update-desktop-database >/dev/null && update-desktop-database "$APPS" 2>/dev/null || true
   # an icon cache older than the icon hides it from the menu (Cinnamon, GNOME): refresh it
   command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -q -f -t "${ICONS%/scalable/apps}" || true
-  echo "installed: start menu entry \"Ruumble Desk\", command ruumble-desk"
+  echo "installed: start menu entry \"Ruumble Client\", command ruumble-client"
 fi
 
 if [ "${1:-}" = --appimage ]; then

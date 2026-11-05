@@ -1,7 +1,7 @@
 # Mumble touch points
 
-Everything Ruumble Desk changes in Mumble's own files, as applied by `patches/mumble/0001-ruumble-desk-touch-points.patch`
-onto the tag in `pins.env`. All code changes sit under `#ifdef USE_RUUMBLE`; the rest of Ruumble Desk lives in `client/`
+Everything Ruumble Client changes in Mumble's own files, as applied by `patches/mumble/0001-ruumble-desk-touch-points.patch`
+onto the tag in `pins.env`. All code changes sit under `#ifdef USE_RUUMBLE`; the rest of Ruumble Client lives in `client/`
 (copied to `src/mumble/ruumble/` in the work tree). This list is the basis for splitting the patch into a stack later
 (one patch per touch point) and the first thing to read when a Mumble update brings conflicts.
 
@@ -16,8 +16,8 @@ onto the tag in `pins.env`. All code changes sit under `#ifdef USE_RUUMBLE`; the
 | | end of `setupView` | `applyChrome()` | hides menu bar, toolbar and docks, the building fills the window |
 | `src/mumble/PluginManager.cpp` | `rescanPlugins` | skips a plugin named "Ruumble" and logs that | no second connection from an installed external plugin |
 | `src/mumble/main.cpp` | top | `RPC_NAME` "RuumbleDesk" and `DBUS_NAME` `net.sourceforge.mumble.ruumbledesk`, used by every `SocketRPC` and D-Bus call and registration below | single instance and `mumble://` links never reach the official Mumble |
-| | before `MumbleApplication` | `AA_ShareOpenGLContexts`, application name "Ruumble Desk", organization "Ruumble" | Qt WebEngine needs the attribute; own settings, data and plugin dirs (ADR-0024 D5, D6) |
-| | after the application | `setDesktopFileName("ruumble-desk")` | own taskbar entry and icon |
+| | before `MumbleApplication` | `AA_ShareOpenGLContexts`, application name "Ruumble Client", organization "Ruumble" | Qt WebEngine needs the attribute; own settings, data and plugin dirs (ADR-0024 D5, D6) |
+| | after the application | `setDesktopFileName("ruumble-client")` | own taskbar entry and icon |
 | | before the settings load | `RuumbleIntegration::importMumbleSettings()` when no settings file is given | audio settings and shortcuts of an official Mumble taken over once |
 
 Not touched: Mumble's dialogs, tray icon, global shortcuts, audio, the user tree (hidden, but still the source of

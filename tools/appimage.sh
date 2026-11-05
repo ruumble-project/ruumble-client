@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Packs the built client (work/build/mumble) into dist/Ruumble_Desk-x86_64.AppImage: one file with Qt, Qt WebEngine
+# Packs the built client (work/build/mumble) into dist/Ruumble_Client-x86_64.AppImage: one file with Qt, Qt WebEngine
 # and all libraries, runs on other Linux machines with the same or a newer glibc than this one (2.39 here).
 # Uses linuxdeploy with its Qt plugin, pinned versions, downloaded into work/appimage/tools on first use.
 set -eu
@@ -28,19 +28,19 @@ fetch linuxdeploy-plugin-qt-x86_64.AppImage \
 # a fresh AppDir every time
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$A/meta"
-install -m 755 "$WB/mumble" "$APPDIR/usr/bin/ruumble-desk"
-install -m 644 "$RU/web/public/icon.svg" "$A/meta/ruumble-desk.svg"
-cat > "$A/meta/ruumble-desk.desktop" <<'EOF'
+install -m 755 "$WB/mumble" "$APPDIR/usr/bin/ruumble-client"
+install -m 644 "$RU/web/public/icon.svg" "$A/meta/ruumble-client.svg"
+cat > "$A/meta/ruumble-client.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
-Name=Ruumble Desk
+Name=Ruumble Client
 GenericName=Voice chat with the Ruumble building
 Comment=Mumble client with Ruumble built in
-Exec=ruumble-desk
-Icon=ruumble-desk
+Exec=ruumble-client
+Icon=ruumble-client
 Terminal=false
 Categories=Network;Chat;
-StartupWMClass=ruumble-desk
+StartupWMClass=ruumble-client
 EOF
 
 mkdir -p "$ROOT/dist"
@@ -50,7 +50,7 @@ cd "$ROOT/dist"
 export QMAKE=/usr/lib/qt6/bin/qmake6
 export EXTRA_QT_PLUGINS="sqldrivers;tls;iconengines"
 export ARCH=x86_64
-export LDAI_OUTPUT="Ruumble_Desk-x86_64.AppImage"
+export LDAI_OUTPUT="Ruumble_Client-x86_64.AppImage"
 export PATH="$TOOLS:$PATH" # linuxdeploy looks for linuxdeploy-plugin-qt-*.AppImage on PATH
 # NSS (Chromium's crypto, needed for every HTTPS page) loads its modules at run time, next to libnss3.so first. They are
 # not linked, so linuxdeploy misses them; without them NSS takes the host's, which do not fit the bundled libnssutil3
@@ -64,8 +64,8 @@ for m in libsoftokn3 libfreeblpriv3 libfreebl3 libnssckbi; do
   if [ -e "$NSS_DIR/$m.chk" ]; then cp -L "$NSS_DIR/$m.chk" "$APPDIR/usr/lib/"; fi
 done
 "$TOOLS/linuxdeploy-x86_64.AppImage" --appdir "$APPDIR" \
-  --executable "$APPDIR/usr/bin/ruumble-desk" \
-  --desktop-file "$A/meta/ruumble-desk.desktop" \
-  --icon-file "$A/meta/ruumble-desk.svg" \
+  --executable "$APPDIR/usr/bin/ruumble-client" \
+  --desktop-file "$A/meta/ruumble-client.desktop" \
+  --icon-file "$A/meta/ruumble-client.svg" \
   --plugin qt --output appimage
 echo "AppImage: $ROOT/dist/$LDAI_OUTPUT"

@@ -1,4 +1,4 @@
-# Build environment for Ruumble Desk packages. BASE picks the distro (debian:12, ubuntu:24.04, ...).
+# Build environment for Ruumble Client packages. BASE picks the distro (debian:12, ubuntu:24.04, ...).
 # Only build tools and libraries; the sources come in read only when the container runs (packaging/in-container.sh).
 ARG BASE=debian:12
 FROM ${BASE}

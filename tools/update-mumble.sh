@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Moves Ruumble Desk to another Mumble release.
+# Moves Ruumble Client to another Mumble release.
 #   tools/update-mumble.sh [tag]     tag e.g. v1.6.901; without one the latest Mumble release
 #
 # 1. MUMBLE_REF in pins.env (Ruumble's interface files are taken over in ruumble-server, then server/ is moved)
@@ -32,7 +32,7 @@ if [ -n "$MUMBLE_REPO" ] && s=$(abs "$MUMBLE_REPO") && [ -d "$s/.git" ]; then sr
 echo "== cloning Mumble from $src"
 git clone -q "$src" "$WM"
 git -C "$WM" fetch -q --tags "$MUMBLE_URL" 2>/dev/null || true
-git -C "$WM" checkout -q -B ruumble-desk "$tag"
+git -C "$WM" checkout -q -B ruumble-client "$tag"
 git -C "$WM" submodule update --init --recursive -q
 ln -sfn "$ROOT/client" "$WM/src/mumble/ruumble"
 
@@ -53,5 +53,5 @@ if ! BUILD_TYPE="${BUILD_TYPE:-RelWithDebInfo}" "$ROOT/tools/build.sh" > "$W/bui
   exit 4
 fi
 "$ROOT/tools/export-patches.sh"
-echo "== Ruumble Desk builds against Mumble $tag. Check the Mumble API that client/QtMumbleApi uses,"
+echo "== Ruumble Client builds against Mumble $tag. Check the Mumble API that client/QtMumbleApi uses,"
 echo "   start the client once (tools/run.sh), then commit."

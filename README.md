@@ -1,4 +1,4 @@
-# Ruumble Desk
+# Ruumble Client
 
 A Mumble client with Ruumble built in: one window, the Ruumble building as the whole UI, Mumble's audio
 underneath (local pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
@@ -14,10 +14,10 @@ in Claude Code: the skill `.claude/skills/update-all` runs it, fixes conflicts a
 
 ```
 ./
-  VERSION                  Ruumble Desk's version
+  VERSION                  Ruumble Client's version
   pins.env                 Mumble tag that is built
   server/                  ruumble-server (submodule): plugin core, icon, service for the local stack
-  client/                  Ruumble Desk sources (linked into work/mumble/src/mumble/ruumble)
+  client/                  Ruumble Client sources (linked into work/mumble/src/mumble/ruumble)
   patches/mumble/          touch points in Mumble files (all under #ifdef USE_RUUMBLE) + CMake block,
                            listed in docs/touch-points.md
   tools/                   prepare, build, run, export-patches, appimage
@@ -33,7 +33,7 @@ in Claude Code: the skill `.claude/skills/update-all` runs it, fixes conflicts a
 tools/prepare.sh           # work/mumble: Mumble from GitHub at the pinned tag, plus the patch
 tools/build.sh             # client into work/build (first time ~10 min)
 test/local-stack.sh up     # local Mumble server (Docker) + Ruumble service from server/
-tools/run.sh               # Ruumble Desk; the server manager opens, connect to 127.0.0.1:64738
+tools/run.sh               # Ruumble Client; the server manager opens, connect to 127.0.0.1:64738
 ```
 
 Build dependencies (Ubuntu/Mint, once): see `CLAUDE.md`.
@@ -41,23 +41,23 @@ Build dependencies (Ubuntu/Mint, once): see `CLAUDE.md`.
 ## Program and AppImage
 
 ```sh
-./build.sh                 # everything above in one go, the program in dist/ruumble-desk
-./build.sh --install       # plus start menu entry "Ruumble Desk" and the command ruumble-desk (~/.local/bin)
+./build.sh                 # everything above in one go, the program in dist/ruumble-client
+./build.sh --install       # plus start menu entry "Ruumble Client" and the command ruumble-client (~/.local/bin)
 ./build.sh --uninstall     # removes entry and command again
-./build.sh --appimage      # plus dist/Ruumble_Desk-x86_64.AppImage: one file with Qt and Qt WebEngine inside
+./build.sh --appimage      # plus dist/Ruumble_Client-x86_64.AppImage: one file with Qt and Qt WebEngine inside
 ```
 
-`dist/ruumble-desk` uses the Qt libraries of this system and needs the build dependencies installed.
+`dist/ruumble-client` uses the Qt libraries of this system and needs the build dependencies installed.
 
-Settings: Ruumble Desk keeps its own (`~/.config/Ruumble/Ruumble Desk/`), apart from the official Mumble. On its first
+Settings: Ruumble Client keeps its own (`~/.config/Ruumble/Ruumble Client/`), apart from the official Mumble. On its first
 start it takes over the official client's audio settings and shortcuts once (marker file `mumble-settings-imported`;
 delete it to import again) and its certificate (Mumble's automatic certificate backup).
 
 ## Packages for other machines (only Docker needed)
 
 ```sh
-./package.sh appimage                  # dist/Ruumble_Desk-x86_64.AppImage, one file with Qt and Qt WebEngine inside
-./package.sh package --distro debian12     # .deb for Debian 12      sudo apt install ./dist/ruumble-desk_*+debian12_amd64.deb
+./package.sh appimage                  # dist/Ruumble_Client-x86_64.AppImage, one file with Qt and Qt WebEngine inside
+./package.sh package --distro debian12     # .deb for Debian 12      sudo apt install ./dist/ruumble-client_*+debian12_amd64.deb
 ./package.sh package --distro ubuntu2404   # .deb for Ubuntu 24.04 and Mint 22
 ./package.sh all --distro debian12         # the .deb for that distro plus the AppImage
 ./package.sh every                         # both .deb plus the AppImage

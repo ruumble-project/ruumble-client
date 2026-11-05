@@ -30,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           version="$(cat VERSION)"
-          echo "Ruumble Desk $version, Ruumble $(git -C server describe --tags --always)"
+          echo "Ruumble Client $version, Ruumble $(git -C server describe --tags --always)"
           if [[ "$PUBLISH" == "true" && "$GITHUB_REF_NAME" != "v$version" ]]; then
             echo "::error::tag $GITHUB_REF_NAME does not match VERSION $version"; exit 1
           fi
@@ -46,14 +46,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p assets
-          cp dist/Ruumble_Desk-x86_64.AppImage "assets/Ruumble_Desk-$VERSION-x86_64.AppImage"
+          cp dist/Ruumble_Client-x86_64.AppImage "assets/Ruumble_Client-$VERSION-x86_64.AppImage"
           (cd assets && sha256sum * > SHA256SUMS)
           {
             awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md
             echo
             echo "## Install"
             echo
-            echo "- **Ruumble Desk $VERSION** (Mumble 1.6 client with the building as its window) for Linux x86_64: \`Ruumble_Desk-$VERSION-x86_64.AppImage\`, one file with Qt and Qt WebEngine inside (\`chmod +x\`, then start it). Guide: [README.md](https://github.com/$GITHUB_REPOSITORY/blob/v$VERSION/README.md)."
+            echo "- **Ruumble Client $VERSION** (Mumble 1.6 client with the building as its window) for Linux x86_64: \`Ruumble_Client-$VERSION-x86_64.AppImage\`, one file with Qt and Qt WebEngine inside (\`chmod +x\`, then start it). Guide: [README.md](https://github.com/$GITHUB_REPOSITORY/blob/v$VERSION/README.md)."
             echo "- It needs a Ruumble service: [ruumble-server](https://github.com/ruumble-project/ruumble-server/releases)."
           } > notes.md
           cat notes.md
@@ -73,4 +73,4 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           gh release create "$GITHUB_REF_NAME" assets/* --verify-tag \
-            --title "Ruumble Desk $VERSION" --notes-file notes.md
+            --title "Ruumble Client $VERSION" --notes-file notes.md

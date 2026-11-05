@@ -1,4 +1,4 @@
-// Minimal CDP client for Ruumble Desk's embedded view.
+// Minimal CDP client for Ruumble Client's embedded view.
 //   node cdp.mjs shot <file.png>       screenshot
 //   node cdp.mjs eval '<js expression>' evaluate in the page (awaits promises), prints JSON
 //   node cdp.mjs click <x> <y>          a real (trusted) left click at that point, as a user would

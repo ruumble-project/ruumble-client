@@ -8,4 +8,4 @@ RU="$ROOT/server"   # Ruumble: ruumble-server as a git submodule (plugin core, i
 W="$ROOT/work"
 WM="$W/mumble"     # Mumble at MUMBLE_REF + patches/mumble + client/ (symlink)
 WB="$W/build"      # build dir of the client
-VERSION="$(cat "$ROOT/VERSION")"  # Ruumble Desk's own version (tools/release.sh)
+VERSION="$(cat "$ROOT/VERSION")"  # Ruumble Client's own version (tools/release.sh)

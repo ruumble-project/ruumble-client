@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Builds Ruumble Desk packages in a container, so the host only needs Docker (any Linux).
+# Builds Ruumble Client packages in a container, so the host only needs Docker (any Linux).
 #
 #   ./package.sh package --distro <name>   the .deb for that distro in dist/: debian12, ubuntu2404 (also Mint 22)
 #                                            sudo apt install ./dist/<file>
-#   ./package.sh appimage                  dist/Ruumble_Desk-x86_64.AppImage, one file for most distros
+#   ./package.sh appimage                  dist/Ruumble_Client-x86_64.AppImage, one file for most distros
 #                                          (built on Debian 12, glibc 2.36: Debian 12+, Ubuntu 22.10+, Fedora, Arch, ...)
 #                                          Other distros get no native package: the AppImage covers them
 #   ./package.sh all --distro <name>       both
@@ -32,7 +32,7 @@ case "$TARGET" in package|appimage|all|every) ;; *) sed -n '2,16p' "$0"; exit 2 
 command -v docker >/dev/null || { echo "Docker is needed"; exit 1; }
 
 run() { # target distro
-  local image="ruumble-desk-build:$2" spec
+  local image="ruumble-client-build:$2" spec
   spec=$(base_of "$2")
   echo "== $1 for $2 (${spec#* })"
   docker build -q -t "$image" -f "$ROOT/packaging/${spec%% *}" --build-arg BASE="${spec#* }" "$ROOT/packaging" >/dev/null
