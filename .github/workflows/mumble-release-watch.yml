@@ -1,0 +1,40 @@
+name: Mumble-Release-Watch
+
+# Reports a new Mumble release as an issue. Taking it over (Mumble tag and patch, build, checks) is done locally: say
+# "Update alles" / "update everything" in Claude Code (skill .claude/skills/update-all), or run
+# tools/update-mumble.sh <tag> by hand. Ruumble's interface files are watched and taken over in ruumble-server.
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compare the latest release with what we use
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pinned="$(sed -nE 's/^MUMBLE_REF=\$\{MUMBLE_REF:-([^}]+)\}$/\1/p' pins.env)"
+          latest="$(gh api repos/mumble-voip/mumble/releases/latest --jq .tag_name)"
+          echo "Ruumble Desk $pinned, latest release $latest"
+          newest="$(printf '%s\n%s\n' "$pinned" "$latest" | sort -V | tail -1)"
+          if [[ "$latest" == "$pinned" ]] || [[ "$newest" != "$latest" ]]; then exit 0; fi
+
+          title="Mumble $latest available (we use $pinned)"
+          if gh issue list --state open --search "\"$title\" in:title" --json number --jq 'length' | grep -qv '^0$'; then
+            echo "Issue already exists."; exit 0
+          fi
+          {
+            echo "A new Mumble release is available: **$latest** (Ruumble Desk is built on $pinned)."
+            echo
+            echo "To take it over: say **\"Update alles\"** in Claude Code in this repo (skill \`.claude/skills/update-all\`), or run \`tools/update-mumble.sh $latest\` by hand."
+          } > /tmp/body.md
+          gh issue create --title "$title" --body-file /tmp/body.md

@@ -3,17 +3,20 @@
 A Mumble client with Ruumble built in: one window, the Ruumble building as the whole UI, Mumble's audio
 underneath (local pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
 
-Ruumble itself (service, web UI, plugin) is the root of this repo; this folder `desk/` holds the client. Mumble is
+Ruumble itself (service, web UI, plugin) is [ruumble-server](https://github.com/ruumble-project/ruumble-server), pinned
+here as the git submodule `server/` (`git clone --recurse-submodules`, or `git submodule update --init`). Mumble is
 **used, never changed**: `tools/prepare.sh` clones it into `work/` (git-ignored), checks out the tag from `pins.env`
 and applies `patches/mumble`. It is cloned from GitHub; `MUMBLE_REPO=<path>` uses a local checkout instead.
 New Mumble releases are reported as an issue (`.github/workflows/mumble-release-watch.yml`). Take one over with
-`tools/update-mumble.sh [tag]` (interface files, pin, 3-way merge of the patch, build, export; exit 3 = conflicts,
+`tools/update-mumble.sh [tag]` (pin, 3-way merge of the patch, build, export; exit 3 = conflicts,
 4 = build failed, fix in `work/mumble` then `tools/build.sh && tools/export-patches.sh`), or simply say "Update alles"
 in Claude Code: the skill `.claude/skills/update-all` runs it, fixes conflicts and runs every check.
 
 ```
-desk/
+./
+  VERSION                  Ruumble Desk's version
   pins.env                 Mumble tag that is built
+  server/                  ruumble-server (submodule): plugin core, icon, service for the local stack
   client/                  Ruumble Desk sources (linked into work/mumble/src/mumble/ruumble)
   patches/mumble/          touch points in Mumble files (all under #ifdef USE_RUUMBLE) + CMake block,
                            listed in docs/touch-points.md
@@ -29,7 +32,7 @@ desk/
 ```sh
 tools/prepare.sh           # work/mumble: Mumble from GitHub at the pinned tag, plus the patch
 tools/build.sh             # client into work/build (first time ~10 min)
-test/local-stack.sh up     # local Mumble server (Docker) + Ruumble service from the repo root
+test/local-stack.sh up     # local Mumble server (Docker) + Ruumble service from server/
 tools/run.sh               # Ruumble Desk; the server manager opens, connect to 127.0.0.1:64738
 ```
 
@@ -64,10 +67,10 @@ Everything builds in a container (`packaging/Dockerfile`, Debian or Ubuntu as ba
 Docker; the repo and a local Mumble checkout are mounted read only, only `dist/` is written. The AppImage is always built on Debian 12
 (glibc 2.36): it runs on Debian 12+, Ubuntu 22.10+, Mint 22+, current Fedora and Arch and similar, so only Debian
 and Ubuntu get a native package. The .deb is built against that distro's own Qt; its dependencies come from
-`dpkg-shlibdeps`. The version is Ruumble's (`bridge/package.json`).
+`dpkg-shlibdeps`. The version is in `VERSION`.
 
-Releases: pushing a tag `v<version>` builds the AppImage in GitHub Actions (`.github/workflows/release.yml` at the
-repo root) and attaches it to the GitHub release next to the server image and the plugin.
+Releases: `tools/release.sh <version>` bumps `VERSION` and `CHANGELOG.md`; pushing the tag `v<version>` builds the
+AppImage in GitHub Actions (`.github/workflows/release.yml`) and attaches it to this repo's GitHub release.
 
 `tools/appimage.sh` (also `./build.sh --appimage`, without container) downloads `linuxdeploy` and its Qt plugin
 (pinned versions) into `work/appimage/tools` on first use.
@@ -75,7 +78,8 @@ repo root) and attaches it to the GitHub release next to the server image and th
 ## Change something
 
 - Client code: edit `client/` (also reachable as `work/mumble/src/mumble/ruumble`), `tools/build.sh`.
-- Ruumble web UI (Desk panel: `web/src/lib/desk/`, `web/src/lib/ui/desk/`): edit at the repo root as usual.
+- Ruumble web UI (Desk panel: `web/src/lib/desk/`, `web/src/lib/ui/desk/`), plugin core: edit in ruumble-server,
+  then move the submodule here (`git -C server pull` or check out a tag, then commit `server`).
 - Mumble touch points: edit in `work/mumble`, then `tools/export-patches.sh` writes them back to `patches/mumble`.
 - After a web change: `test/local-stack.sh up` again (the service only serves the files it saw at start).
 - Other Mumble tag: change `pins.env`, remove `work/mumble`, `tools/prepare.sh`; fix the patch in the work tree if

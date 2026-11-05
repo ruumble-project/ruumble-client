@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Local test stack for Ruumble Desk: Mumble server in Docker (deploy/local), Ruumble service on the host,
-# both from the repo root.
+# both from the server submodule (server/).
 #   local-stack.sh up | down
 # The service runs on the host because the Docker image build is very slow here (npm in the container).
 # ADDRESS_CHECK=warn: Mumble in Docker sees the host as the Docker gateway (172.x), the service sees 127.0.0.1.
 set -eu
 HERE="$(cd "$(dirname "$0")" && pwd)"; W="$HERE/.work"; mkdir -p "$W/bridge-data"
-RUUMBLE="$(cd "$HERE/../.." && pwd)"
+RUUMBLE="$(cd "$HERE/../server" && pwd)"
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 case "${1:-up}" in
   up)

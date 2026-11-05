@@ -3,7 +3,7 @@
 //   - everyone may administer the building (create, remove, move rooms and people, ACL, kick, ban), so the
 //     right-click menus and drag and drop can be tried with throwaway test users. Never run this against a real server.
 // Uses the setup-only WRITE secret like tools/live-test/src/setup.cjs.
-const { connect } = require("../../tools/live-test/src/ice.cjs");
+const { connect } = require("../server/tools/live-test/src/ice.cjs");
 
 const DESCRIPTIONS = {
   "Ben's office": "<p>Ben's office: <b>backend</b> and the build.</p><ul><li>Stand-up at 9:30</li><li>Wiki: <a href=\"https://example.com/wiki\">example.com/wiki</a></li></ul>",

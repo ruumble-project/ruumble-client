@@ -10,7 +10,7 @@
 #   ./package.sh deb --distro <name>       same as package
 #   ./package.sh every                     both .deb plus the AppImage
 #
-# The repo (Ruumble at the root, Desk in desk/) is mounted read only, only dist/ is written. The container clones
+# The repo (with Ruumble in the submodule server/) is mounted read only, only dist/ is written. The container clones
 # Mumble from MUMBLE_URL (pins.env), or uses a local checkout named in MUMBLE_REPO (mounted read only).
 set -eu
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -42,8 +42,8 @@ run() { # target distro
     mumble=(-v "$src:/in/mumble:ro" -e MUMBLE_REPO=/in/mumble)
   fi
   docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-    -v "$RU:/in/repo:ro" "${mumble[@]}" \
-    -v "$ROOT/dist:/out" "$image" /in/repo/desk/packaging/in-container.sh "$1" "$2"
+    -v "$ROOT:/in/repo:ro" "${mumble[@]}" \
+    -v "$ROOT/dist:/out" "$image" /in/repo/packaging/in-container.sh "$1" "$2"
 }
 
 case "$TARGET" in

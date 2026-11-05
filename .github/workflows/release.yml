@@ -1,0 +1,76 @@
+name: Release
+
+# Pushing a tag v<version> (VERSION, tools/release.sh) builds the AppImage and creates the GitHub release with it and
+# SHA256SUMS; the notes are the version's section in CHANGELOG.md.
+# Started manually it is a dry run: it builds the AppImage and uploads it as a workflow artifact, no release.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: AppImage and GitHub release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    env:
+      PUBLISH: ${{ github.ref_type == 'tag' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Check version
+        id: version
+        run: |
+          set -euo pipefail
+          version="$(cat VERSION)"
+          echo "Ruumble Desk $version, Ruumble $(git -C server describe --tags --always)"
+          if [[ "$PUBLISH" == "true" && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match VERSION $version"; exit 1
+          fi
+          grep -q "^## \[$version\]" CHANGELOG.md || [[ "$PUBLISH" != "true" ]] || { echo "::error::CHANGELOG.md has no section for $version"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # the same Debian 12 container as locally; Mumble is cloned at the tag from pins.env
+      - run: ./package.sh appimage
+
+      - name: Assets and release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p assets
+          cp dist/Ruumble_Desk-x86_64.AppImage "assets/Ruumble_Desk-$VERSION-x86_64.AppImage"
+          (cd assets && sha256sum * > SHA256SUMS)
+          {
+            awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md
+            echo
+            echo "## Install"
+            echo
+            echo "- **Ruumble Desk $VERSION** (Mumble 1.6 client with the building as its window) for Linux x86_64: \`Ruumble_Desk-$VERSION-x86_64.AppImage\`, one file with Qt and Qt WebEngine inside (\`chmod +x\`, then start it). Guide: [README.md](https://github.com/$GITHUB_REPOSITORY/blob/v$VERSION/README.md)."
+            echo "- It needs a Ruumble service: [ruumble-server](https://github.com/ruumble-project/ruumble-server/releases)."
+          } > notes.md
+          cat notes.md
+
+      - uses: actions/upload-artifact@v7
+        if: env.PUBLISH != 'true'
+        with:
+          name: release-dryrun
+          path: |
+            assets
+            notes.md
+
+      - name: Create the GitHub release
+        if: env.PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" assets/* --verify-tag \
+            --title "Ruumble Desk $VERSION" --notes-file notes.md

@@ -28,7 +28,7 @@ Section: sound
 Priority: optional
 Depends: $DEPS, $RUNTIME
 Recommends: pipewire-pulse | pulseaudio
-Homepage: https://github.com/KevinWebman/Ruumble-Desk
+Homepage: https://github.com/ruumble-project/ruumble-client
 Description: $DESCRIPTION_SHORT
 $(echo "$DESCRIPTION_LONG" | fold -s -w 78 | sed 's/^/ /')
 CTRL

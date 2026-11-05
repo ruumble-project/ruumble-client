@@ -6,11 +6,11 @@ set -eu
 TARGET=$1 DISTRO=$2
 S=/tmp/rd            # scratch: a copy of this repo, the Mumble work tree, the build
 rm -rf "$S" && mkdir -p "$S/repo"
-(cd /in/repo && tar --exclude=./.git --exclude=node_modules --exclude=./desk/work \
-  --exclude=./desk/dist --exclude=./desk/test/.work -cf - .) | (cd "$S/repo" && tar -xf -)
+(cd /in/repo && tar --exclude=./.git --exclude=node_modules --exclude=./work \
+  --exclude=./dist --exclude=./test/.work -cf - .) | (cd "$S/repo" && tar -xf -)
 git config --global --add safe.directory '*'
 
-cd "$S/repo/desk"
+cd "$S/repo"
 tools/prepare.sh
 BUILD_TYPE=Release tools/build.sh
 
