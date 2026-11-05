@@ -46,7 +46,7 @@ private:
 	struct Target {
 		QString host;
 		unsigned short port = 0;
-		QHostAddress address; // resolved
+		QList< QHostAddress > addresses; // resolved: every one is pinged, IPv4 and IPv6, as Mumble's list does
 		bool resolving    = false;
 		bool failed       = false;
 		quint64 key       = 0; // hides the timestamp from the server, like Mumble does
@@ -56,6 +56,7 @@ private:
 
 	void tick();
 	void send(Target &target);
+	static bool matches(const Target &target, const QHostAddress &host, quint16 port);
 	void read();
 
 	QUdpSocket *m_socket;

@@ -64,13 +64,13 @@ void ServerPing::tick() {
 		if (t.failed) {
 			continue;
 		}
-		if (t.address.isNull()) {
+		if (t.addresses.isEmpty()) {
 			if (t.resolving) {
 				continue;
 			}
 			QHostAddress literal;
 			if (literal.setAddress(t.host)) {
-				t.address = literal;
+				t.addresses << literal;
 			} else {
 				t.resolving = true;
 				QHostInfo::lookupHost(t.host, this, [this, id](const QHostInfo &info) {
@@ -86,14 +86,8 @@ void ServerPing::tick() {
 						emit updated();
 						return;
 					}
-					// prefer IPv4 like most servers are reached
-					found->address = info.addresses().first();
-					for (const QHostAddress &a : info.addresses()) {
-						if (a.protocol() == QAbstractSocket::IPv4Protocol) {
-							found->address = a;
-							break;
-						}
-					}
+					// all of them: a server may answer on IPv6 only (or IPv4 only), Mumble's list pings every address too
+					found->addresses = info.addresses();
 					send(*found);
 				});
 				continue;
@@ -125,12 +119,31 @@ void ServerPing::send(Target &t) {
 	for (Version::full_t version : { Version::UNKNOWN, Mumble::Protocol::PROTOBUF_INTRODUCTION_VERSION }) {
 		m_encoder.setProtocolVersion(version);
 		const auto packet = m_encoder.encodePingPacket(data);
-		m_socket->writeDatagram(reinterpret_cast< const char * >(packet.data()), static_cast< qint64 >(packet.size()),
-								t.address, t.port);
+		for (const QHostAddress &address : t.addresses) {
+			m_socket->writeDatagram(reinterpret_cast< const char * >(packet.data()),
+									static_cast< qint64 >(packet.size()), address, t.port);
+		}
 	}
 	if (t.firstSent < 0) {
 		t.firstSent = m_clock.elapsed();
 	}
+}
+
+bool ServerPing::matches(const Target &t, const QHostAddress &host, quint16 port) {
+	if (t.port != port) {
+		return false;
+	}
+	for (const QHostAddress &address : t.addresses) {
+		// IPv4 answers may come as IPv4-mapped IPv6 on a dual stack socket; a scope id "0" means none (as in Mumble)
+		QHostAddress from(host);
+		if (from.scopeId() == QLatin1String("0")) {
+			from.setScopeId(QString());
+		}
+		if (address.isEqual(from, QHostAddress::TolerantConversion)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void ServerPing::read() {
@@ -152,8 +165,7 @@ void ServerPing::read() {
 		const Mumble::Protocol::PingData data = m_decoder.getPingData();
 		for (auto it = m_targets.begin(); it != m_targets.end(); ++it) {
 			Target &t = it.value();
-			// IPv4 answers may come as IPv4-mapped IPv6 on a dual stack socket
-			if (t.port != port || !t.address.isEqual(host, QHostAddress::TolerantConversion)) {
+			if (!matches(t, host, port)) {
 				continue;
 			}
 			const qint64 now = m_clock.elapsed();
