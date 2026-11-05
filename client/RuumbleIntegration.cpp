@@ -15,7 +15,11 @@
 #include "config.h"
 #include "core.h"
 #include "messages.h"
-#include "net.h"
+#ifdef RUUMBLE_CORE_NET_H
+#	include RUUMBLE_CORE_NET_H // full path: on Windows "net.h" would find Mumble's src/Net.h
+#else
+#	include "net.h"
+#endif
 
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
