@@ -39,8 +39,12 @@ in Claude Code: the skill `.claude/skills/update-all` runs it, fixes conflicts a
 tools/prepare.sh           # work/mumble: Mumble from GitHub at the pinned tag, plus the patch
 tools/build.sh             # client into work/build (first time ~10 min)
 test/local-stack.sh up     # local Mumble server (Docker) + Ruumble service from server/
-tools/run.sh               # Ruumble Client; the server manager opens, connect to 127.0.0.1:64738
+tools/run.sh               # Ruumble Client; the City Map opens: note 127.0.0.1:64738 as an address and enter
 ```
+
+The **City Map** (`client/citymap/`, `client/CityMap`) takes the place of Mumble's connection dialog: addresses with
+connection and visitors, and "On your next visit" (no building, the last visited one, or the headquarters, entered
+automatically at start). Mumble's own server list stays in the Mumble menu (F10).
 
 Build dependencies (Ubuntu/Mint, once): see `CLAUDE.md`.
 

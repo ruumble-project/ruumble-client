@@ -1,5 +1,6 @@
 #include "RuumbleIntegration.h"
 
+#include "CityMap.h"
 #include "DeskChannel.h"
 #include "QtMumbleApi.h"
 #include "RuumbleView.h"
@@ -114,7 +115,15 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 		// the page reports CSS pixels: the view's zoom turns them into widget pixels
 		[this](const QPoint &css) { showMumbleMenu(css * m_view->zoomFactor()); },
 		[this](bool on) { setUserListVisible(on); }, this);
-	m_view = new RuumbleView(m_desk, [this](const QString &action) { onAction(action); }, mw);
+	m_cityMap = new CityMap(
+		mw, [this] { return m_view && m_view->showsCityMap(); }, [this] { m_view->showCityMap(); },
+		[this] { m_view->leaveCityMap(Global::get().uiSession != 0); }, this);
+	m_view = new RuumbleView(m_desk, m_cityMap, [this](const QString &action) { onAction(action); }, mw);
+	QObject::connect(m_view, &QWebEngineView::urlChanged, this, [this](const QUrl &url) {
+		if (!RuumbleView::isCityMap(url)) {
+			m_cityMap->pageLeft();
+		}
+	});
 	m_usersDock = new QDockWidget(tr("Users"), mw);
 	m_usersDock->setObjectName(QLatin1String("qdwRuumbleUsers"));
 	// takeCentralWidget, not setCentralWidget alone: that would delete the user tree, and Mumble's user model with it
@@ -171,8 +180,17 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 
 	QObject::connect(this, &RuumbleIntegration::serviceKnown, m_view, &RuumbleView::showService, Qt::QueuedConnection);
 	QObject::connect(this, &RuumbleIntegration::linkRequested, m_view, &RuumbleView::openLink, Qt::QueuedConnection);
-	QObject::connect(this, &RuumbleIntegration::placeholderRequested, m_view, &RuumbleView::showPlaceholder,
-					 Qt::QueuedConnection);
+	QObject::connect(
+		this, &RuumbleIntegration::placeholderRequested, this,
+		[this](bool connected) {
+			// the City Map stays on screen (a building is being entered, or chosen): only forget the old service
+			if (m_cityMap->onScreen()) {
+				m_view->forgetService();
+			} else {
+				m_view->showPlaceholder(connected);
+			}
+		},
+		Qt::QueuedConnection);
 
 	m_api       = std::make_unique< QtMumbleApi >();
 	m_socket    = std::make_unique< ruumble::WebSocketTransport >();
@@ -205,9 +223,10 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 	// client events, all non-blocking on the core side
 	QObject::connect(mw, &MainWindow::serverSynchronized, this, [this] {
 		m_core->onSynchronized();
+		m_cityMap->entered();
 		// no service after a while: the server does not offer Ruumble (or it is not reachable)
 		QTimer::singleShot(8000, this, [this] {
-			if (Global::get().uiSession != 0 && !m_view->showsService()) {
+			if (Global::get().uiSession != 0 && !m_view->showsService() && !m_view->showsCityMap()) {
 				m_view->showPlaceholder(true);
 			}
 		});
@@ -265,6 +284,14 @@ void RuumbleIntegration::attachServerHandler(ServerHandler *sh) {
 		Global::get().sh->getConnectionInfo(host, port, user, pw);
 		m_desk->setServer(QStringLiteral("%1:%2").arg(host).arg(port));
 	});
+}
+
+bool RuumbleIntegration::openCityMap(bool autoconnect) {
+	return m_cityMap->open(autoconnect);
+}
+
+bool RuumbleIntegration::connectionFailed(int socketError, const QString &reason, int rejectType) {
+	return m_cityMap->connectionFailed(socketError, reason, rejectType);
 }
 
 void RuumbleIntegration::applyChrome() {
@@ -442,6 +469,12 @@ void RuumbleIntegration::showMumbleMenu(const QPoint &viewPos) {
 		}
 	}
 	m_mumbleMenu->addSeparator();
+	// Mumble's own connection dialog stays reachable (the City Map takes its place everywhere else)
+	QAction *servers = m_mumbleMenu->addAction(tr("Mumble server list"));
+	QObject::connect(servers, &QAction::triggered, this, [this] {
+		m_cityMap->bypassOnce();
+		m_mw->on_qaServerConnect_triggered();
+	});
 	QAction *users = m_mumbleMenu->addAction(tr("Mumble user list (channels, users, rights)"));
 	users->setCheckable(true);
 	users->setChecked(m_userListVisible);

@@ -2,5 +2,6 @@
 <RCC version="1.0">
 	<qresource prefix="/ruumbledesk">
 		<file alias="popover-polyfill.js">compat/popover-polyfill.min.js</file>
+		<file alias="citymap.html">citymap/citymap.html</file>
 	</qresource>
 </RCC>

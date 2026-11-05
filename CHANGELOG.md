@@ -7,6 +7,10 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Added
+
+- Ruumble City Map: Mumble's connection dialog in the building look, in German and English. An address list with building name, address, connection (signal bars, milliseconds as tooltip) and visitors; note, edit and remove addresses (the same list as Mumble's favourites); "On your next visit": enter no building, the last visited one or the headquarters automatically at start. Entering automatically gives up after 15 s and shows the reason on the City Map instead of a Mumble dialog; Mumble's own server list stays in the Mumble menu (F10)
+
 ### Removed
 
 - Windows: no Windows zip in the releases any more, the team dropped Windows support; Ruumble Client is for Linux (packages, AppImage, NixOS)

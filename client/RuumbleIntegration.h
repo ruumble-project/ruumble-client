@@ -1,7 +1,8 @@
 // Ruumble Client: Ruumble built into the client (ADR-0024, phases 0 and 1).
 // Runs Ruumble's core like the plugin does and shows the web UI as the main view.
-// The only entry points from Mumble code are the constructor (MainWindow::setupGui) and
-// attachServerHandler (MainWindow, where a ServerHandler is created).
+// The entry points from Mumble code are the constructor (MainWindow::setupGui), attachServerHandler (MainWindow, where
+// a ServerHandler is created), openCityMap (MainWindow::openServerConnectDialog) and connectionFailed
+// (MainWindow::serverDisconnected).
 
 #ifndef MUMBLE_MUMBLE_RUUMBLE_RUUMBLEINTEGRATION_H_
 #define MUMBLE_MUMBLE_RUUMBLE_RUUMBLEINTEGRATION_H_
@@ -24,6 +25,7 @@ class WebSocketTransport;
 
 namespace ruumbledesk {
 
+class CityMap;
 class DeskChannel;
 class QtMumbleApi;
 class ObservingTransport;
@@ -39,6 +41,18 @@ public:
 
 	/** call for every new ServerHandler (one per connection) */
 	void attachServerHandler(ServerHandler *sh);
+
+	/**
+	 * The Ruumble City Map instead of Mumble's connection dialog (ticket #8). autoconnect: the call at start, which
+	 * enters the building of "On your next visit". Returns false when Mumble's own dialog is to open (chosen in the
+	 * Mumble menu).
+	 */
+	bool openCityMap(bool autoconnect);
+	/**
+	 * A connection ended with an error (not the certificate question). While a building is being entered from the City
+	 * Map, the City Map shows the failure: returns true, and Mumble then shows no dialog and does not reconnect.
+	 */
+	bool connectionFailed(int socketError, const QString &reason, int rejectType);
 
 	/** hides Mumble's menu bar, toolbar and docks: the Ruumble UI hosts their functions (MainWindow::setupView) */
 	void applyChrome();
@@ -94,6 +108,7 @@ private:
 
 	MainWindow *m_mw;
 	DeskChannel *m_desk;
+	CityMap *m_cityMap;
 	RuumbleView *m_view;
 	QDockWidget *m_usersDock;
 	QMenu *m_mumbleMenu = nullptr;

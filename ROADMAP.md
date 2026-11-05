@@ -277,3 +277,15 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       templates, skills `/ticket` and `/new-ticket`, CI on pull requests
 - [x] NixOS (Kevin, 2026-11-05): flake with package, overlay and module (`nix/package.nix`, Mumble and IXWebSocket
       pinned in `nix/mumble-src.json`); built and started headless in the `nixos/nix` container; CI job `nix.yml`
+
+## Ruumble City Map (#8, Bert, 2026-11-05)
+
+- [x] City Map page (bundled, German and English) instead of Mumble's connection dialog; Mumble's own list in the Mumble menu
+- [x] Addresses = Mumble's favourites: note, edit, remove; connection (UDP ping) and visitors per address
+- [x] "On your next visit": no building, last visited, headquarters (`city-map.json`); headquarters follows an edit,
+      removing it falls back to "no building"
+- [x] Entering automatically: progress with Cancel, 15 s limit (paused while a Mumble question is open), failure on the
+      City Map without Mumble's dialog or reconnect
+- [x] Headless checks with the local stack (`DESK_LINK=0`, `DESK_AUTOCONNECT`, `DESK_LAST_SERVER`, `DESK_LANG`)
+- [ ] By hand on a desktop: certificate question of an unknown server during an automatic entry, the Mumble menu's
+      "Mumble server list", `--hidden`
