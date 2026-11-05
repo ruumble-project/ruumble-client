@@ -12,6 +12,12 @@ New Mumble releases are reported as an issue (`.github/workflows/mumble-release-
 4 = build failed, fix in `work/mumble` then `tools/build.sh && tools/export-patches.sh`), or simply say "Update alles"
 in Claude Code: the skill `.claude/skills/update-all` runs it, fixes conflicts and runs every check.
 
+## For team members
+
+> [!IMPORTANT]
+> **[Open the team Kanban board](https://github.com/orgs/ruumble-project/projects/1)**: tickets of ruumble-client and ruumble-server, who works on what and the status of each.
+> You need access to the Ruumble organization; if the page shows a 404, ask a maintainer to add you to the board.
+
 ```
 ./
   VERSION                  Ruumble Client's version
