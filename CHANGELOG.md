@@ -10,7 +10,7 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 ### Added
 
 - Fedora: an `.rpm` for the current Fedora in every release (built with Mumble's upstream fix for OpenSSL 4, kept in `patches/upstream` until a Mumble release has it)
-- Windows: Ruumble Client for Windows 10/11 x64 as a zip (`ruumble-client.exe` with Qt WebEngine), built in every release; not signed yet
+- Windows: the release workflow builds Ruumble Client for Windows 10/11 x64 as a zip (`ruumble-client.exe` with Qt WebEngine, not signed yet); a release whose Windows build fails comes without it and says so
 - NixOS: a Nix flake, `nix run github:ruumble-project/ruumble-client`, with a NixOS module (`programs.ruumble-client.enable`) and an overlay; built from source against Qt 6 from nixpkgs
 
 ## [0.34.0] - 2026-11-05
