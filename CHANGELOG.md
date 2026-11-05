@@ -11,19 +11,17 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 - Ruumble City Map: Mumble's connection dialog in the building look, in German and English. An address list with building name, address, connection (signal bars, milliseconds as tooltip) and visitors; note, edit and remove addresses (the same list as Mumble's favourites); "On your next visit": enter no building, the last visited one or the headquarters automatically at start. Entering automatically gives up after 15 s and shows the reason on the City Map instead of a Mumble dialog; Mumble's own server list stays in the Mumble menu (F10)
 
+### Changed
+
+- Built with Ruumble 0.35.0 (submodule `server/`, plugin core 0.5.0 unchanged)
+
 ### Fixed
 
 - Entering a building whose address has an SRV record (`_mumble._tcp`) no longer waits 10 s when one of its servers is down: the servers are tried by their SRV priority, and an address that cannot be reached from here (e.g. IPv6 without an IPv6 route) is skipped right away instead of ending the attempt. A Mumble fix kept in `patches/upstream` until Mumble has it
 
 ### Removed
 
-- Windows: no Windows zip in the releases any more, the team dropped Windows support; Ruumble Client is for Linux (packages, AppImage, NixOS)
-
-## [0.35.1] - 2026-11-05
-
-### Added
-
-- Windows: Ruumble Client for Windows 10/11 x64 is part of the release now, as `Ruumble_Client-<version>-windows-x64.zip` (unpack, start `ruumble-client.exe`; not signed yet, so SmartScreen asks once)
+- Windows: the team dropped Windows support, and the Windows build is gone from the release workflow; no release ever had a Windows zip (0.35.0's Windows build failed, 0.35.1 was never published). Ruumble Client is for Linux (packages, AppImage, NixOS)
 
 ## [0.35.0] - 2026-11-05
 
