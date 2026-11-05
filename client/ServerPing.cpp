@@ -15,11 +15,13 @@ namespace {
 	constexpr qint64 kGiveUpMs = 6000; // no answer for this long: shown as "does not answer"
 } // namespace
 
-ServerPing::ServerPing(QObject *parent) : QObject(parent), m_socket(new QUdpSocket(this)), m_timer(new QTimer(this)) {
+ServerPing::ServerPing(QObject *parent)
+	: QObject(parent), m_socket4(new QUdpSocket(this)), m_socket6(new QUdpSocket(this)), m_timer(new QTimer(this)) {
 	m_clock.start();
 	m_timer->setInterval(kIntervalMs);
 	QObject::connect(m_timer, &QTimer::timeout, this, &ServerPing::tick);
-	QObject::connect(m_socket, &QUdpSocket::readyRead, this, &ServerPing::read);
+	QObject::connect(m_socket4, &QUdpSocket::readyRead, this, [this] { read(m_socket4); });
+	QObject::connect(m_socket6, &QUdpSocket::readyRead, this, [this] { read(m_socket6); });
 }
 
 void ServerPing::setTargets(const QStringList &targets) {
@@ -46,10 +48,16 @@ void ServerPing::setTargets(const QStringList &targets) {
 }
 
 void ServerPing::start() {
-	if (m_socket->state() != QAbstractSocket::BoundState) {
-		// dual stack: IPv4 and IPv6
-		if (!m_socket->bind(QHostAddress::Any)) {
-			qWarning().noquote() << "Ruumble City Map: ping socket not bound:" << m_socket->errorString();
+	if (!m_bound4) {
+		m_bound4 = m_socket4->bind(QHostAddress(QHostAddress::AnyIPv4), 0);
+		if (!m_bound4) {
+			qWarning().noquote() << "Ruumble City Map: IPv4 ping socket not bound:" << m_socket4->errorString();
+		}
+	}
+	if (!m_bound6) {
+		m_bound6 = m_socket6->bind(QHostAddress(QHostAddress::AnyIPv6), 0);
+		if (!m_bound6) {
+			qInfo().noquote() << "Ruumble City Map: IPv6 ping socket not bound:" << m_socket6->errorString();
 		}
 	}
 	m_timer->start();
@@ -134,8 +142,13 @@ void ServerPing::send(Target &t) {
 		m_encoder.setProtocolVersion(version);
 		const auto packet = m_encoder.encodePingPacket(data);
 		for (const QHostAddress &address : t.addresses) {
-			m_socket->writeDatagram(reinterpret_cast< const char * >(packet.data()),
-									static_cast< qint64 >(packet.size()), address, t.port);
+			const bool v4 = address.protocol() == QAbstractSocket::IPv4Protocol;
+			QUdpSocket *socket = v4 ? m_socket4 : m_socket6;
+			if (v4 ? !m_bound4 : !m_bound6) {
+				continue;
+			}
+			socket->writeDatagram(reinterpret_cast< const char * >(packet.data()), static_cast< qint64 >(packet.size()),
+								  address, t.port);
 		}
 	}
 	if (t.firstSent < 0) {
@@ -160,14 +173,14 @@ bool ServerPing::matches(const Target &t, const QHostAddress &host, quint16 port
 	return false;
 }
 
-void ServerPing::read() {
+void ServerPing::read(QUdpSocket *socket) {
 	bool changed = false;
-	while (m_socket->hasPendingDatagrams()) {
+	while (socket->hasPendingDatagrams()) {
 		QHostAddress host;
 		quint16 port = 0;
 		auto buffer  = m_decoder.getBuffer();
 		const qint64 len =
-			m_socket->readDatagram(reinterpret_cast< char * >(buffer.data()), static_cast< qint64 >(buffer.size()), &host, &port);
+			socket->readDatagram(reinterpret_cast< char * >(buffer.data()), static_cast< qint64 >(buffer.size()), &host, &port);
 		if (len <= 0) {
 			continue;
 		}

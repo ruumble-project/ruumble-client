@@ -58,9 +58,13 @@ private:
 	void tick();
 	void send(Target &target);
 	static bool matches(const Target &target, const QHostAddress &host, quint16 port);
-	void read();
+	void read(QUdpSocket *socket);
 
-	QUdpSocket *m_socket;
+	// two sockets like Mumble's server list (ConnectDialog): one for IPv4, one for IPv6
+	QUdpSocket *m_socket4;
+	QUdpSocket *m_socket6;
+	bool m_bound4 = false;
+	bool m_bound6 = false;
 	QTimer *m_timer;
 	QElapsedTimer m_clock;
 	QHash< QString, Target > m_targets;
