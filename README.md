@@ -72,7 +72,8 @@ are built against that distro's own Qt; their dependencies come from the linked 
 rpmbuild, `pacman -Qo`). Fedora's OpenSSL 4 needs an upstream Mumble fix that is not in a Mumble release yet: it is
 kept in `patches/upstream` and applied before our touch points (`tools/prepare.sh`). They replace an installed `ruumble-desk`. The version is in `VERSION`.
 
-Releases: `tools/release.sh <version>` bumps `VERSION` and `CHANGELOG.md`; pushing the tag `v<version>` builds the
+Releases (details and when to release: [docs/releasing.md](docs/releasing.md)): `tools/release.sh <version>` bumps
+`VERSION` and `CHANGELOG.md`; pushing the tag `v<version>` builds the
 AppImage, both .deb, the .rpm, the Arch package and the Windows zip in parallel in GitHub Actions (`.github/workflows/release.yml`) and attaches
 them to this repo's GitHub release.
 
