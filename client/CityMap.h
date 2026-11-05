@@ -86,6 +86,7 @@ private:
 		bool timedOut  = false;
 		bool started   = false; // the server handler ran at least once
 		QString name, host, user;
+		QString lastReason; // of a failed attempt that Mumble retries (shown if the 15 s run out)
 		unsigned short port = 0;
 		int elapsedMs       = 0;
 	};
@@ -104,6 +105,7 @@ private:
 	void saveOwnSettings() const;
 	void startEntry(const FavoriteServer &fs, bool automatic);
 	void tickEntry();
+	void failAfterLimit();
 	void fail(const QString &reason, const QString &detail = QString());
 	void showMap();
 	void updatePing();

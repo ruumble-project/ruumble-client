@@ -193,13 +193,25 @@ bool CityMap::connectionFailed(int socketError, const QString &reason, int rejec
 			break;
 	}
 	if (m_entry.timedOut) {
-		fail(QStringLiteral("timeout"));
-	} else if (socketError == QAbstractSocket::SslHandshakeFailedError) {
-		fail(QStringLiteral("tls"), reason);
-	} else {
-		fail(QStringLiteral("unreachable"), reason);
+		failAfterLimit();
+		return true;
 	}
-	return true;
+	if (socketError == QAbstractSocket::SslHandshakeFailedError) {
+		fail(QStringLiteral("tls"), reason);
+		return true;
+	}
+	// The server or one of its addresses did not answer: Mumble tries again (its reconnect), the entering goes on
+	// until it succeeds or the 15 s run out (ticket #8). Mumble only logs this attempt.
+	m_entry.lastReason = reason;
+	return false;
+}
+
+void CityMap::failAfterLimit() {
+	if (m_entry.lastReason.isEmpty()) {
+		fail(QStringLiteral("timeout"));
+	} else {
+		fail(QStringLiteral("unreachable"), m_entry.lastReason);
+	}
 }
 
 void CityMap::entered() {
@@ -227,14 +239,6 @@ void CityMap::startEntry(const FavoriteServer &fs, bool automatic) {
 		m_leave();
 		return;
 	}
-	m_entry           = Entry();
-	m_entry.active    = true;
-	m_entry.automatic = automatic;
-	m_entry.name      = fs.qsName;
-	m_entry.host      = fs.qsHostname;
-	m_entry.port      = fs.usPort;
-	m_entry.user      = fs.qsUsername;
-
 	QUrl url;
 	url.setScheme(QStringLiteral("mumble"));
 	url.setHost(fs.qsHostname);
@@ -246,8 +250,18 @@ void CityMap::startEntry(const FavoriteServer &fs, bool automatic) {
 	url.setQuery(query);
 
 	showMap(); // the entering is shown on the City Map page
-	m_entryTimer->start();
+	m_entry = Entry();
+	// openUrl first: it ends a running connection and handles that disconnect right away, which must not count as a
+	// failure of this entering
 	m_mw->openUrl(url);
+	m_entry.active    = true;
+	m_entry.automatic = automatic;
+	m_entry.name      = fs.qsName;
+	m_entry.host      = fs.qsHostname;
+	m_entry.port      = fs.usPort;
+	m_entry.user      = fs.qsUsername;
+	m_stoppedTicks    = 0;
+	m_entryTimer->start();
 	notify();
 }
 
@@ -264,23 +278,27 @@ void CityMap::tickEntry() {
 	if (m_entry.timedOut) {
 		// waiting for the disconnect asked for below; normally connectionFailed comes first
 		if (!running) {
-			fail(QStringLiteral("timeout"));
+			failAfterLimit();
 		}
 		return;
 	}
 	if (running) {
 		m_entry.started = true;
 		m_stoppedTicks  = 0;
-	} else if (m_entry.started && ++m_stoppedTicks >= kStoppedMax) {
-		// ended without passing serverDisconnected's other branches: the certificate was not accepted
-		const bool certificate = Global::get().sh && !Global::get().sh->qlErrors.isEmpty();
-		fail(certificate ? QStringLiteral("tls") : QStringLiteral("unreachable"));
+	} else if (m_entry.started && Global::get().sh && !Global::get().sh->qlErrors.isEmpty()
+			   && ++m_stoppedTicks >= kStoppedMax) {
+		// ended after the certificate question without a new attempt: the certificate was not accepted
+		fail(QStringLiteral("tls"));
 		return;
 	}
 	m_entry.elapsedMs += kTickMs;
 	if (m_entry.elapsedMs >= kLimitMs) {
 		m_entry.timedOut = true;
-		m_mw->disconnectFromServer(); // its serverDisconnected comes back to connectionFailed
+		// also stops Mumble's reconnect timer; a running attempt comes back to connectionFailed
+		m_mw->disconnectFromServer();
+		if (!running) {
+			failAfterLimit();
+		}
 		return;
 	}
 	notify();
