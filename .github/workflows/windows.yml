@@ -57,7 +57,7 @@ jobs:
         id: vcpkg-cache
         with:
           path: work/vcpkg_installed
-          key: vcpkg-windows-2022-${{ hashFiles('packaging/windows/vcpkg.json') }}
+          key: vcpkg-windows-2022-${{ hashFiles('packaging/windows/vcpkg.json', 'packaging/windows/triplets/*') }}
       - name: Build
         shell: bash
         run: packaging/windows/build.sh
@@ -65,7 +65,7 @@ jobs:
         if: always() && steps.vcpkg-cache.outputs.cache-hit != 'true' && hashFiles('work/vcpkg_installed/vcpkg/status') != ''
         with:
           path: work/vcpkg_installed
-          key: vcpkg-windows-2022-${{ hashFiles('packaging/windows/vcpkg.json') }}
+          key: vcpkg-windows-2022-${{ hashFiles('packaging/windows/vcpkg.json', 'packaging/windows/triplets/*') }}
       - name: Show the end of the log
         if: failure()
         shell: bash

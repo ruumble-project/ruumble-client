@@ -20,7 +20,8 @@ if [ ! -f "$WB/CMakeCache.txt" ]; then
   cmake -S "$(win "$WM")" -B "$(win "$WB")" -G Ninja -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE="$(win "$VCPKG_INSTALLATION_ROOT")/scripts/buildsystems/vcpkg.cmake" \
     -DVCPKG_MANIFEST_DIR="$(win "$ROOT/packaging/windows")" -DVCPKG_INSTALLED_DIR="$(win "$W/vcpkg_installed")" \
-    -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_PREFIX_PATH="$(win "$QT_ROOT_DIR")" \
+    -DVCPKG_OVERLAY_TRIPLETS="$(win "$ROOT/packaging/windows/triplets")" -DVCPKG_TARGET_TRIPLET=x64-windows-ruumble \
+    -DCMAKE_PREFIX_PATH="$(win "$QT_ROOT_DIR")" \
     -Dserver=OFF -Dtests=OFF -Dplugins=OFF -Doverlay=OFF -Dpackaging=OFF -Dupdate=OFF -Dtranslations=OFF \
     -Dwarnings-as-errors=OFF -Dlto=OFF -Dzeroconf=OFF -Djackaudio=OFF -Dportaudio=OFF -Dasio=OFF -Dg15=OFF \
     -Dcrash-report=OFF -Delevation=OFF \
