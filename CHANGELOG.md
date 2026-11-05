@@ -7,6 +7,10 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Added
+
+- Windows: Ruumble Client for Windows 10/11 x64 is part of the release now, as `Ruumble_Client-<version>-windows-x64.zip` (unpack, start `ruumble-client.exe`; not signed yet, so SmartScreen asks once)
+
 ## [0.35.0] - 2026-11-05
 
 ### Added

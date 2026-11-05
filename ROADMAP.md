@@ -122,8 +122,9 @@ real desktop (layout of view and user dock, first-start audio wizard).
       `dist/Ruumble_Desk-x86_64.AppImage`, 131 MB, built against glibc 2.36 (Debian 12); contains QtWebEngineProcess, WebEngine resources,
       SQLite driver and OpenSSL TLS backend, no unresolved libraries. Fix on the way: `tools/appimage.sh` had no
       executable bit. Still open: Kevin starts it on the desktop (WebEngine sandbox inside the AppImage)
-- [~] Windows (Kevin, 2026-11-05): own shared build in GitHub Actions (`windows.yml`, `packaging/windows/`), zip with
-      Qt WebEngine; not signed. macOS: not covered
+- [x] Windows (Kevin, 2026-11-05): own shared build in GitHub Actions (`windows.yml`, `packaging/windows/`), zip with
+      Qt WebEngine; not signed. Needed: Mumble's xboxinput and gkey on, the core's net.h by full path (Mumble's Net.h),
+      protobuf and abseil static and C++20 (own vcpkg triplet). Started on real Windows: still open. macOS: not covered
 
 ## M8: Ruumble moves into this repo (Kevin, 2026-11-04, agreed with Bert)
 
