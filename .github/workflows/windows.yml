@@ -22,6 +22,11 @@ on:
 permissions:
   contents: read
 
+# one Windows build per branch at a time (each takes a runner for a long while)
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build Windows

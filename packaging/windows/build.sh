@@ -5,7 +5,8 @@
 # VCPKG_INSTALLATION_ROOT; the other libraries come from vcpkg in manifest mode (packaging/windows/vcpkg.json).
 # Mumble supports only static builds on Windows, but Qt WebEngine exists only as shared libraries, so this is a
 # shared build of its own. Result: dist/Ruumble_Client-x86_64-windows.zip, a folder with ruumble-client.exe, its DLLs
-# and Qt WebEngine. Logs: work/configure.log, work/build.log, work/deploy.log.
+# and Qt WebEngine. A unity build as in Mumble's own CI: some Windows headers of Mumble rely on it (windows.h).
+# Logs: work/configure.log, work/build.log, work/deploy.log.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$ROOT/tools/common.sh"
@@ -19,6 +20,7 @@ if [ ! -f "$WB/CMakeCache.txt" ]; then
     -DCMAKE_TOOLCHAIN_FILE="$(win "$VCPKG_INSTALLATION_ROOT")/scripts/buildsystems/vcpkg.cmake" \
     -DVCPKG_MANIFEST_DIR="$(win "$ROOT/packaging/windows")" -DVCPKG_INSTALLED_DIR="$(win "$W/vcpkg_installed")" \
     -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_PREFIX_PATH="$(win "$QT_ROOT_DIR")" \
+    -DCMAKE_UNITY_BUILD=ON \
     -Dserver=OFF -Dtests=OFF -Dplugins=OFF -Doverlay=OFF -Dpackaging=OFF -Dupdate=OFF -Dtranslations=OFF \
     -Dwarnings-as-errors=OFF -Dlto=OFF -Dzeroconf=OFF -Djackaudio=OFF -Dportaudio=OFF -Dasio=OFF -Dg15=OFF \
     -Dgkey=OFF -Dxboxinput=OFF -Dcrash-report=OFF -Delevation=OFF \
