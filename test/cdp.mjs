@@ -14,7 +14,7 @@ ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.id && waiting.has(m.
 await new Promise((r) => (ws.onopen = r));
 const send = (method, params = {}) => new Promise((r) => { const i = ++id; waiting.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 const [cmd, arg, arg2] = process.argv.slice(2);
-await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
+await send("Emulation.setDeviceMetricsOverride", { width: Number(process.env.CDP_WIDTH ?? 1280), height: Number(process.env.CDP_HEIGHT ?? 800), deviceScaleFactor: 1, mobile: false });
 console.error("page:", target.url);
 if (cmd === "shot") {
   const r = await send("Page.captureScreenshot", { format: "png" });

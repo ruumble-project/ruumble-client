@@ -13,6 +13,7 @@
   Ruumble Client with `RUUMBLE_MUMBLE_MIGRATION=take|not-now|never` (answers the dialog) and checks the files and,
   through Ice (`migration-ice.cjs`, test server only), that the connection is the registered user with the token.
   Needs `local-stack.sh up`.
+- `CDP_WIDTH=900 CDP_HEIGHT=700 node cdp.mjs ...`: the page at another size (default 1280×800), e.g. to check a narrow window.
 - `cdp.mjs shot <png>` / `cdp.mjs eval '<js>'` / `cdp.mjs click <x> <y>`: look into and drive the embedded view (raw CDP;
   Playwright's `connectOverCDP` does not work with QtWebEngine). `click` is a real, trusted mouse click: needed for
   light dismiss of popovers and anything else that ignores synthetic events.
