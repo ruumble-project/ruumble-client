@@ -7,6 +7,14 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Added
+
+- `desk` for Ruumble's edit dialog (ruumble-server#15): `channelProperties(channelId)` (name, maximum users, the description's hash) and `updateChannel(channelId, { name?, description?, maxUsers? })`, which sends one ChannelState and stores the description as given, Markdown as plain text instead of the HTML of Mumble's dialog
+
+### Fixed
+
+- Right click on a room no longer offers "Add...", and a floor with rooms no longer offers "Move to floor": both made a third channel level, which locks the whole floor in the building (#16)
+
 ## [0.37.0] - 2026-11-06
 
 ### Added
@@ -16,12 +24,6 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 ### Changed
 
 - Ruumble Client no longer takes over Mumble's audio settings and shortcuts silently on its first start; the new question includes them (#15)
-
-- `desk` for Ruumble's edit dialog (ruumble-server#15): `channelProperties(channelId)` (name, maximum users, the description's hash) and `updateChannel(channelId, { name?, description?, maxUsers? })`, which sends one ChannelState and stores the description as given, Markdown as plain text instead of the HTML of Mumble's dialog
-
-### Fixed
-
-- Right click on a room no longer offers "Add...", and a floor with rooms no longer offers "Move to floor": both made a third channel level, which locks the whole floor in the building (#16)
 
 ## [0.36.0] - 2026-11-05
 
