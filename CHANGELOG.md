@@ -7,6 +7,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-11-06
+
 ### Added
 
 - `desk.clientVersion`: Ruumble Client's own version (`VERSION`; Nix passes it to CMake), so the web UI can say that a newer client is out (ruumble-server#18). `desk.version` stays Mumble's (#17)
