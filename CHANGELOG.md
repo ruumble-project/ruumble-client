@@ -15,6 +15,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
   or by the page (`client/TransmitControl`, `client/PttKeys.h`). The web UI shows it from ruumble-server's next release
   on: a mode tab next to the microphone, the microphone as talk button. On X11 the key works in every window, on
   Wayland only while the client has the focus (follow-up #18) (#9)
+- **Push-to-talk cues:** two short tones (`client/sounds/ptt-on.wav`, `ptt-off.wav`, made by `tools/make-cues.py`) replace
+  Mumble's default click sounds; cues the user chose in Mumble stay (#9)
 
 ### Fixed
 
