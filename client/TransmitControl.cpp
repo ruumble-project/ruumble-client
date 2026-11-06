@@ -55,6 +55,13 @@ namespace {
 } // namespace
 
 TransmitControl::TransmitControl(MainWindow *mw, QObject *parent) : QObject(parent), m_mw(mw) {
+	// Ruumble's own push-to-talk cues (short and quiet, chosen in #9) instead of Mumble's defaults; cues the user
+	// picked in Mumble's settings stay
+	Settings &s = Global::get().s;
+	if (s.qsTxAudioCueOn == Settings::cqsDefaultPushClickOn && s.qsTxAudioCueOff == Settings::cqsDefaultPushClickOff) {
+		s.qsTxAudioCueOn  = QStringLiteral(":/ruumbledesk/ptt-on.wav");
+		s.qsTxAudioCueOff = QStringLiteral(":/ruumbledesk/ptt-off.wav");
+	}
 	m_lastMode    = static_cast< int >(Global::get().s.atTransmit);
 	m_lastButtons = boundButtons();
 	m_lastOptions = options();

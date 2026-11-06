@@ -3,5 +3,7 @@
 	<qresource prefix="/ruumbledesk">
 		<file alias="popover-polyfill.js">compat/popover-polyfill.min.js</file>
 		<file alias="citymap.html">citymap/citymap.html</file>
+		<file alias="ptt-on.wav">sounds/ptt-on.wav</file>
+		<file alias="ptt-off.wav">sounds/ptt-off.wav</file>
 	</qresource>
 </RCC>
