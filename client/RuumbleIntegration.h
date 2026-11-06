@@ -82,9 +82,8 @@ public:
 	static QString externalPluginName() { return QStringLiteral("Ruumble"); }
 
 	/**
-	 * Once, before the settings are loaded: takes the audio settings and the shortcuts (push-to-talk and others) of
-	 * an installed official Mumble into Ruumble Client's own settings, which are kept apart otherwise (ADR-0024 D5).
-	 * Not the mute and deaf state of its last session. A marker file next to the settings makes it run only once.
+	 * Before the settings are loaded: offers to take over an installed official Mumble (certificate, servers, audio,
+	 * shortcuts, network), so every connection works as there (ADR-0024 D5, ticket #15; MumbleMigration).
 	 */
 	static void importMumbleSettings();
 	/**

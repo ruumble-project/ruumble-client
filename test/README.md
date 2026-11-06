@@ -9,6 +9,10 @@
   City Map (ticket #8): `DESK_LINK=0` starts without a `mumble://` link, so the City Map opens (or "On your next visit"
   enters a building); `DESK_AUTOCONNECT=1` and `DESK_LAST_SERVER=<name>` preset Mumble's auto connect and last
   building (headquarters: `city-map.json` in the test home's data dir); `DESK_LANG=de_DE` for the German texts.
+- `migration.sh`: ticket #15, taking over an installed Mumble. Builds fake Mumble setups in isolated homes, starts
+  Ruumble Client with `RUUMBLE_MUMBLE_MIGRATION=take|not-now|never` (answers the dialog) and checks the files and,
+  through Ice (`migration-ice.cjs`, test server only), that the connection is the registered user with the token.
+  Needs `local-stack.sh up`.
 - `cdp.mjs shot <png>` / `cdp.mjs eval '<js>'` / `cdp.mjs click <x> <y>`: look into and drive the embedded view (raw CDP;
   Playwright's `connectOverCDP` does not work with QtWebEngine). `click` is a real, trusted mouse click: needed for
   light dismiss of popovers and anything else that ignores synthetic events.

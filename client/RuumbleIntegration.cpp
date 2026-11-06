@@ -2,6 +2,7 @@
 
 #include "CityMap.h"
 #include "DeskChannel.h"
+#include "MumbleMigration.h"
 #include "QtMumbleApi.h"
 #include "RuumbleView.h"
 
@@ -27,8 +28,6 @@
 #include <QtCore/QDirIterator>
 #include <QtCore/QFileInfo>
 #include <QtCore/QFile>
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QTimer>
 #include <QtCore/QPersistentModelIndex>
@@ -572,77 +571,8 @@ void RuumbleIntegration::takeOverDeskSettings() {
 }
 
 void RuumbleIntegration::importMumbleSettings() {
-	takeOverDeskSettings(); // first, so a former Ruumble Desk keeps its own settings and does not import Mumble's
-	const QDir deskDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
-	const QString marker = deskDir.filePath(QStringLiteral("mumble-settings-imported"));
-	if (QFile::exists(marker)) {
-		return;
-	}
-	// the official client's settings: same layout under its own organization and application name
-	const QString official = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation))
-								 .filePath(QStringLiteral("Mumble/Mumble/mumble_settings.json"));
-	const QString desk = deskDir.filePath(QStringLiteral("mumble_settings.json"));
-
-	auto writeMarker = [&](const QString &what) {
-		deskDir.mkpath(QStringLiteral("."));
-		QFile file(marker);
-		if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-			file.write(QStringLiteral("%1 %2\n").arg(QDateTime::currentDateTime().toString(Qt::ISODate), what).toUtf8());
-		}
-	};
-	auto readJson = [](const QString &path) {
-		QFile file(path);
-		if (!file.open(QIODevice::ReadOnly)) {
-			return QJsonObject();
-		}
-		return QJsonDocument::fromJson(file.readAll()).object();
-	};
-
-	const QJsonObject source = readJson(official);
-	if (source.isEmpty()) {
-		writeMarker(QStringLiteral("no official Mumble settings found"));
-		return;
-	}
-
-	QJsonObject target = readJson(desk);
-	if (target.isEmpty()) {
-		target.insert(QStringLiteral("settings_version"), source.value(QStringLiteral("settings_version")).toInt(1));
-	} else if (!QFile::exists(desk + QStringLiteral(".before-mumble-import"))) {
-		QFile::copy(desk, desk + QStringLiteral(".before-mumble-import"));
-	}
-
-	// audio: the official values win, except the mute and deaf state of its last session
-	QJsonObject audio = target.value(QStringLiteral("audio")).toObject();
-	const QJsonObject sourceAudio = source.value(QStringLiteral("audio")).toObject();
-	for (auto it = sourceAudio.begin(); it != sourceAudio.end(); ++it) {
-		if (it.key() != QLatin1String("mute") && it.key() != QLatin1String("deaf")) {
-			audio.insert(it.key(), it.value());
-		}
-	}
-	target.insert(QStringLiteral("audio"), audio);
-
-	// shortcuts (push-to-talk among them), unless Ruumble Client has its own already
-	if (!target.contains(QStringLiteral("shortcuts")) && source.contains(QStringLiteral("shortcuts"))) {
-		target.insert(QStringLiteral("shortcuts"), source.value(QStringLiteral("shortcuts")));
-	}
-
-	// audio set up already: no audio wizard on the first start
-	if (source.value(QStringLiteral("misc")).toObject().value(QStringLiteral("audio_wizard_has_been_shown")).toBool()) {
-		QJsonObject misc = target.value(QStringLiteral("misc")).toObject();
-		misc.insert(QStringLiteral("audio_wizard_has_been_shown"), true);
-		target.insert(QStringLiteral("misc"), misc);
-	}
-
-	deskDir.mkpath(QStringLiteral("."));
-	QFile out(desk);
-	if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-		qWarning("Ruumble Client: could not write %s, Mumble settings not imported", qPrintable(desk));
-		return;
-	}
-	out.write(QJsonDocument(target).toJson(QJsonDocument::Indented));
-	out.close();
-	writeMarker(QStringLiteral("imported audio and shortcuts from ") + official);
-	qInfo("Ruumble Client: imported audio settings and shortcuts from %s", qPrintable(official));
+	takeOverDeskSettings(); // first, so a former Ruumble Desk keeps its own settings
+	MumbleMigration::run();
 }
 
 } // namespace ruumbledesk

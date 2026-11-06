@@ -59,9 +59,25 @@ Build dependencies (Ubuntu/Mint, once): see `CLAUDE.md`.
 
 `dist/ruumble-client` uses the Qt libraries of this system and needs the build dependencies installed.
 
-Settings: Ruumble Client keeps its own (`~/.config/Ruumble/Ruumble Client/`), apart from the official Mumble. On its first
-start it takes over the official client's audio settings and shortcuts once (marker file `mumble-settings-imported`;
-delete it to import again) and its certificate (Mumble's automatic certificate backup).
+Settings: Ruumble Client keeps its own (`~/.config/Ruumble/Ruumble Client/`), apart from the official Mumble.
+
+### Taking over an installed Mumble
+
+When an official Mumble (1.5 or newer; native, Flatpak or Snap) is set up on the computer, Ruumble Client offers at
+start to take it over, so that every server works as it does in Mumble: the certificate (your identity on the servers),
+the favourites with their accepted server certificates, access tokens and per-server shortcuts, the local nicknames,
+friends and volumes, and the settings for audio, shortcuts and network. Mumble always wins; servers only Ruumble Client
+knows stay. If Ruumble Client is set up already, the dialog says that its setup will be overwritten, and a backup is
+kept next to each file (`*.before-mumble-migration-<time>`). A setup of Mumble 1.4 or older cannot be taken over; the
+dialog says so.
+
+"Take over" and "Do not ask again" are remembered; "Not now" asks again on the next start.
+
+**To be asked again:** quit Ruumble Client and delete the file that holds the answer, then start it again:
+
+```sh
+rm ~/".config/Ruumble/Ruumble Client/mumble-migration"
+```
 
 ## Packages for other machines (only Docker needed)
 

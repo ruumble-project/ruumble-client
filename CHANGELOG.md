@@ -7,6 +7,14 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Added
+
+- Taking over an installed Mumble: at start Ruumble Client offers to take over an official Mumble's setup (1.5 or newer, native, Flatpak or Snap), so that every server works as it does in Mumble: certificate, favourites, accepted server certificates, access tokens, per-server shortcuts, nicknames, friends and volumes, and the settings for audio, shortcuts and network. Mumble always wins, servers only Ruumble Client knows stay, and a backup is kept. "Take over" and "Do not ask again" are remembered; the README says how to be asked again (#15)
+
+### Changed
+
+- Ruumble Client no longer takes over Mumble's audio settings and shortcuts silently on its first start; the new question includes them (#15)
+
 ## [0.36.0] - 2026-11-05
 
 ### Added

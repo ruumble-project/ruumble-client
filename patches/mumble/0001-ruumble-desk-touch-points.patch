@@ -1,8 +1,8 @@
 diff --git a/src/mumble/CMakeLists.txt b/src/mumble/CMakeLists.txt
-index 1f3daa5..28d55f4 100644
+index 1f3daa5..5626d95 100644
 --- a/src/mumble/CMakeLists.txt
 +++ b/src/mumble/CMakeLists.txt
-@@ -1247,3 +1247,58 @@ if(packaging AND WIN32)
+@@ -1247,3 +1247,60 @@ if(packaging AND WIN32)
  		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/installer/client
  	)
  endif()
@@ -45,6 +45,8 @@ index 1f3daa5..28d55f4 100644
 +		"ruumble/CityMap.h"
 +		"ruumble/DeskChannel.cpp"
 +		"ruumble/DeskChannel.h"
++		"ruumble/MumbleMigration.cpp"
++		"ruumble/MumbleMigration.h"
 +		"ruumble/QtMumbleApi.cpp"
 +		"ruumble/QtMumbleApi.h"
 +		"ruumble/RuumbleIntegration.cpp"
@@ -227,7 +229,7 @@ index ad30270..5419784 100644
  				} catch (const PluginError &e) {
  					// If an exception is thrown, this library does not represent a proper plugin
 diff --git a/src/mumble/main.cpp b/src/mumble/main.cpp
-index 3ab90d0..6af09b5 100644
+index 3ab90d0..731b55c 100644
 --- a/src/mumble/main.cpp
 +++ b/src/mumble/main.cpp
 @@ -72,6 +72,17 @@
@@ -319,7 +321,7 @@ index 3ab90d0..6af09b5 100644
  #endif
  
 +#ifdef USE_RUUMBLE
-+	// first start next to an official Mumble: take over its audio settings and shortcuts once
++	// next to an official Mumble: offer to take over its setup (certificate, servers, settings) before loading ours
 +	if (settingsFile.isEmpty()) {
 +		ruumbledesk::RuumbleIntegration::importMumbleSettings();
 +	}

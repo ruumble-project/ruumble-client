@@ -179,7 +179,15 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       `RuumbleIntegration::importMumbleSettings()` (called in `main.cpp` before the settings load) takes the official
       client's `audio` section (without its mute/deaf state) and its shortcuts once; backup
       `mumble_settings.json.before-mumble-import`, marker `mumble-settings-imported` in `~/.config/Ruumble/Ruumble Desk/`.
-      Existing Desk installs get it on their next start. Checked in an isolated home
+      Existing Desk installs get it on their next start. Checked in an isolated home.
+      *Replaced 2026-11-06 by the migration of ticket #15 (`client/MumbleMigration`).*
+- [x] 2026-11-06 (Bert, #15): taking over an installed Mumble so every connection works as there. `MumbleMigration::run()`
+      (from `importMumbleSettings()`) looks for Mumble's setup where Mumble itself looks (native, Flatpak, Snap,
+      `misc.database_location`), asks with a Qt dialog before the settings load (the window does not exist yet), and
+      merges: certificate, `audio` (without mute/deaf), `audio_backend`, `positional_audio`, `shortcuts`, `network`,
+      the user name; `mumble.sqlite` table by table in one transaction (Mumble's row wins on the same key, caches
+      left out). Backups `*.before-mumble-migration-<time>`, answer file `mumble-migration`. Mumble 1.4 and older:
+      only a hint. Headless test `test/migration.sh` (27 checks, Ice confirms the registered user and the token)
 - [x] 2026-11-04 (Kevin): no Mumble chat on the colleague's server. Cause: log and chat live in the Desk panel of
       the web UI, which an older service (0.32.1) does not have, and Desk hides Mumble's own docks. Fix: when the
       service's page has not asked `desk.history()` 4 s after loading, Desk shows Mumble's log and chat docks; the
