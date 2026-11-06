@@ -12,6 +12,10 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 - `desk` for the rooms in the floor care: `createChannel(parentId, name)` (a permanent room, as Mumble's own "Add"), `removeChannel(channelId)`, and `position` in `updateChannel`, so the web UI can add, delete and order rooms; Mumble checks the permissions (#12)
 - `desk` for Ruumble's edit dialog (ruumble-server#15): `channelProperties(channelId)` (name, maximum users, the description's hash) and `updateChannel(channelId, { name?, description?, maxUsers? })`, which sends one ChannelState and stores the description as given, Markdown as plain text instead of the HTML of Mumble's dialog
 
+### Changed
+
+- Built with Ruumble 0.38.0 (submodule `server/`, plugin core 0.5.0 unchanged): the room menu, room setup, the rooms in the floor care, "What's new" in the user menu ([what's new in 0.38.0](https://github.com/ruumble-project/ruumble-server/blob/main/docs/whats-new/0.38.0.md))
+
 ### Fixed
 
 - Right click on a room no longer offers "Add...", and a floor with rooms no longer offers "Move to floor": both made a third channel level, which locks the whole floor in the building (#16)
