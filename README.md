@@ -3,6 +3,9 @@
 A Mumble client with Ruumble built in: one window, the Ruumble building as the whole UI, Mumble's audio
 underneath (local pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
 
+**What's new:** the [release notes for users](https://github.com/ruumble-project/ruumble-server/blob/main/docs/whats-new/README.md)
+cover Ruumble and Ruumble Client together, newest version on top. Details for developers: [CHANGELOG](CHANGELOG.md).
+
 Ruumble itself (service, web UI, plugin) is [ruumble-server](https://github.com/ruumble-project/ruumble-server), pinned
 here as the git submodule `server/` (`git clone --recurse-submodules`, or `git submodule update --init`). Mumble is
 **used, never changed**: `tools/prepare.sh` clones it into `work/` (git-ignored), checks out the tag from `pins.env`
