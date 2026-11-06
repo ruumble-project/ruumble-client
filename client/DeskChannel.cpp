@@ -7,6 +7,7 @@
 #include "ServerHandler.h"
 #include "Version.h"
 
+#include <QtCore/QCryptographicHash>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
 
@@ -151,6 +152,64 @@ void DeskChannel::moveUser(int session, int channelId) {
 	if (m_allowed() && session > 0 && channelId >= 0) {
 		emit userMoveRequested(static_cast< unsigned int >(session), static_cast< unsigned int >(channelId));
 	}
+}
+
+namespace {
+	QString descriptionHash(const QString &description) {
+		return QString::fromLatin1(QCryptographicHash::hash(description.toUtf8(), QCryptographicHash::Sha1).toHex());
+	}
+} // namespace
+
+QVariantMap DeskChannel::channelProperties(int channelId) {
+	const Channel *c = channelId >= 0 ? Channel::get(static_cast< unsigned int >(channelId)) : nullptr;
+	if (!m_allowed() || !c) {
+		return {};
+	}
+	// Mumble keeps the hash of every description it has seen (also the long ones it has not fetched yet)
+	const QString hash = !c->qbaDescHash.isEmpty() ? QString::fromLatin1(c->qbaDescHash.toHex())
+												   : (c->qsDesc.isEmpty() ? QString() : descriptionHash(c->qsDesc));
+	return { { QStringLiteral("name"), c->qsName },
+			 { QStringLiteral("maxUsers"), static_cast< int >(c->uiMaxUsers) },
+			 { QStringLiteral("descriptionHash"), hash } };
+}
+
+QVariantMap DeskChannel::updateChannel(int channelId, const QVariantMap &changes) {
+	const Channel *c = channelId >= 0 ? Channel::get(static_cast< unsigned int >(channelId)) : nullptr;
+	if (!m_allowed() || !c || !Global::get().sh) {
+		return { { QStringLiteral("sent"), false } };
+	}
+	MumbleProto::ChannelState mpcs;
+	mpcs.set_channel_id(c->iId);
+	QVariantMap result;
+	bool any = false;
+	if (changes.contains(QStringLiteral("name"))) {
+		const QString name = changes.value(QStringLiteral("name")).toString().trimmed();
+		if (name.isEmpty()) {
+			return { { QStringLiteral("sent"), false } };
+		}
+		mpcs.set_name(name.toUtf8().toStdString());
+		any = true;
+	}
+	if (changes.contains(QStringLiteral("description"))) {
+		// as given: Mumble's own dialog sends the HTML of its rich text editor, Ruumble sends Markdown as plain text
+		const QString description = changes.value(QStringLiteral("description")).toString();
+		mpcs.set_description(description.toUtf8().toStdString());
+		result.insert(QStringLiteral("descriptionHash"), description.isEmpty() ? QString() : descriptionHash(description));
+		any = true;
+	}
+	if (changes.contains(QStringLiteral("maxUsers"))) {
+		const int maxUsers = changes.value(QStringLiteral("maxUsers")).toInt();
+		if (maxUsers < 0) {
+			return { { QStringLiteral("sent"), false } };
+		}
+		mpcs.set_max_users(static_cast< unsigned int >(maxUsers));
+		any = true;
+	}
+	if (any) {
+		Global::get().sh->sendMessage(mpcs);
+	}
+	result.insert(QStringLiteral("sent"), any);
+	return result;
 }
 
 void DeskChannel::showUserList(bool on) {

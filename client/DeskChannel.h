@@ -6,7 +6,12 @@
 //               openSettings(), openConnect(), openAudioWizard(), disconnectServer(),
 //               showMenu(x, y) (Mumble's menus at CSS pixel x/y of the page), showUserList(on),
 //               showChannelMenu(channelId, x, y), showUserMenu(session, x, y) (Mumble's own context menus for a
-//               channel or a user: add, remove, edit, ACL, links, kick, ban, ... ), moveUser(session, channelId)
+//               channel or a user: add, remove, edit, ACL, links, kick, ban, ... ), moveUser(session, channelId),
+//               channelProperties(channelId) -> { name, maxUsers, descriptionHash } | {} (unknown channel),
+//               updateChannel(channelId, { name?, description?, maxUsers? }) -> { sent, descriptionHash? }
+//               (Ruumble's edit dialog, server#15: sends one ChannelState with the given fields; the server decides,
+//               the page sees the result in channelProperties and the next snapshot. descriptionHash: SHA-1 hex of the
+//               description as UTF-8, as Mumble keeps it)
 //   entry       { id: number, time: ms since epoch, kind: "text"|"private"|"own"|"warning"|"info", text: string }
 // Log texts are plain text (never Mumble's HTML), so the page can show them without parsing markup.
 
@@ -55,6 +60,10 @@ public:
 	Q_INVOKABLE void showUserMenu(int session, double x, double y);
 	/** drag and drop of a person onto a room: moves that user, with the user's own Mumble permissions */
 	Q_INVOKABLE void moveUser(int session, int channelId);
+	/** name, maximum users and the description's hash of a channel as this client knows it; {} if unknown */
+	Q_INVOKABLE QVariantMap channelProperties(int channelId);
+	/** changes name, description (stored as given, never turned into HTML) and maximum users of a channel */
+	Q_INVOKABLE QVariantMap updateChannel(int channelId, const QVariantMap &changes);
 
 	/** from the integration: connection to a Mumble server changed */
 	void setServer(const QString &server);
