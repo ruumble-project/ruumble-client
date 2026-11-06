@@ -12,6 +12,10 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 - `desk.clientVersion`: Ruumble Client's own version (`VERSION`; Nix passes it to CMake), so the web UI can say that a newer client is out (ruumble-server#18). `desk.version` stays Mumble's (#17)
 - The AppImage updates itself: it carries its update information (the latest release's `.zsync`), and every release has the `.zsync` next to the AppImage, so Gear Lever or AppImageUpdate fetch only what changed. The README says how to update each package (#17)
 
+### Changed
+
+- Built with Ruumble 0.39.0 (submodule `server/`, plugin core 0.5.0 unchanged): Ruumble says when a newer Ruumble Client is out ([what's new in 0.39.0](https://github.com/ruumble-project/ruumble-server/blob/main/docs/whats-new/0.39.0.md))
+
 ## [0.38.0] - 2026-11-06
 
 ### Added
