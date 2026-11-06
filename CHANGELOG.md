@@ -7,6 +7,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-11-06
+
 ### Added
 
 - `desk` for the rooms in the floor care: `createChannel(parentId, name)` (a permanent room, as Mumble's own "Add"), `removeChannel(channelId)`, and `position` in `updateChannel`, so the web UI can add, delete and order rooms; Mumble checks the permissions (#12)
