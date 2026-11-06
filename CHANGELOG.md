@@ -7,6 +7,20 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Added
+
+- **How you transmit:** the `desk` object tells the Ruumble web UI the transmit mode, whether you are transmitting and
+  the mic level, takes presses and a latch from the page (let go by the client itself when the page reloads, crashes or
+  the mode changes) and sets the push-to-talk key as Mumble's own shortcut, captured through Mumble's shortcut engine
+  or by the page (`client/TransmitControl`, `client/PttKeys.h`). The web UI shows it from ruumble-server's next release
+  on: a mode tab next to the microphone, the microphone as talk button. On X11 the key works in every window, on
+  Wayland only while the client has the focus (follow-up #18) (#9)
+
+### Fixed
+
+- Asking Mumble's X11 shortcut engine for a key name without a display connection (Wayland without XWayland, headless)
+  crashed the client; Ruumble Client only asks it on X11 (#9)
+
 ## [0.39.0] - 2026-11-06
 
 ### Added

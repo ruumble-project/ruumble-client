@@ -247,8 +247,9 @@ bool TransmitControl::setOption(const QString &name, const QVariant &value) {
 }
 
 bool TransmitControl::startCapture() {
+	// the last captured key stays pending until a new one is captured: the page listens again after each key, so the
+	// user can try another one and still accept the one shown
 	stopCapture();
-	m_pending.clear();
 	m_capturing = true;
 	if (GlobalShortcutEngine *engine = GlobalShortcutEngine::engine) {
 		engine->resetMap();

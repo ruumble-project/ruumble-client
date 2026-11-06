@@ -315,5 +315,7 @@ Design and decisions: comment on #9. Global key on Wayland: follow-up #18.
       cue), `client/PttKeys.h` (DOM codes and Mumble's X11 button values); `desk` contract in `DeskChannel.h`; the
       page's presses are let go on reload, page crash, mode change and quit
 - [x] Headless test `test/transmit.mjs` (`DESK_AUDIO=1 test/run-desk.sh <Name>` hands over PipeWire and PulseAudio)
-- [ ] Web (ruumble-server): mode tab and menu, microphone as talk button, top bar line, key dialog, i18n, what's new
+- [x] Web (ruumble-server, branch `9-push-to-talk`): mode tab and menu, microphone as talk button, top bar line, key
+      dialog, i18n, what's new, user guide; unit tests `web/test/transmit.test.ts`, e2e `web/e2e/transmit.spec.ts`;
+      checked in the headless client (Chromium 102): menu, latch, key dialog, a key captured from the page and saved
 - [ ] By hand on X11 (key with another window focused) and on a Wayland session; user guide section on what works where

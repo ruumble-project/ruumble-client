@@ -24,7 +24,7 @@
 //               pttOptionsChanged(), keyCaptured(key)
 //   methods     setTransmitMode(mode) -> bool, pushToTalk(down) (the page's press: mouse on the microphone, or the key
 //               while scope is "window"), setLatched(on), watchLevel(on), captureKey() -> bool (listens for the next
-//               key or mouse button, answer in keyCaptured), capturePageKey(codes) (a key the page saw while capturing),
+//               key or mouse button, answer in keyCaptured; the last captured key stays until a new one is captured), capturePageKey(codes) (a key the page saw while capturing),
 //               cancelCapture(), acceptKey() -> bool (binds the captured key as Mumble's push-to-talk shortcut),
 //               setPttOption(name, value) -> bool
 //   key         { set: bool, label: string (Mumble's names, "Control_R"), codes: string[] (DOM codes such as
