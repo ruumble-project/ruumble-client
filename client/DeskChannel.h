@@ -16,6 +16,22 @@
 //               createChannel(parentId, name) -> { sent }, removeChannel(channelId) -> { sent } (the rooms of the floor
 //               care, client#12; Mumble checks the permissions and moves the people of a removed channel to its parent)
 //   entry       { id: number, time: ms since epoch, kind: "text"|"private"|"own"|"warning"|"info", text: string }
+// How the user transmits (ticket #9; all of it absent in older clients, the page checks for transmitMode):
+//   properties  transmitMode ("vad"|"ptt"|"continuous"), transmitting (bool, the own talk state, from the client),
+//               micLevel (0..1, only kept up to date while watchLevel(true) or while transmitting), latched (bool),
+//               pttKey (key), pttOptions ({ doublePush: bool, audioCue: bool })
+//   signals     transmitModeChanged(), transmittingChanged(), micLevelChanged(), latchedChanged(), pttKeyChanged(),
+//               pttOptionsChanged(), keyCaptured(key)
+//   methods     setTransmitMode(mode) -> bool, pushToTalk(down) (the page's press: mouse on the microphone, or the key
+//               while scope is "window"), setLatched(on), watchLevel(on), captureKey() -> bool (listens for the next
+//               key or mouse button, answer in keyCaptured), capturePageKey(codes) (a key the page saw while capturing),
+//               cancelCapture(), acceptKey() -> bool (binds the captured key as Mumble's push-to-talk shortcut),
+//               setPttOption(name, value) -> bool
+//   key         { set: bool, label: string (Mumble's names, "Control_R"), codes: string[] (DOM codes such as
+//               "ControlRight", or "MouseBack"/"MouseForward"/"MouseMiddle"; empty when one is unknown),
+//               scope: "global"|"window" (window: the key works only while Ruumble Client has the focus, e.g. Wayland),
+//               warn: bool (a key that types or acts in other programs too) }
+// The client lets go of the page's presses by itself when the page reloads or leaves, the mode changes or it quits.
 // Log texts are plain text (never Mumble's HTML), so the page can show them without parsing markup.
 
 #ifndef MUMBLE_MUMBLE_RUUMBLE_DESKCHANNEL_H_
@@ -26,6 +42,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QPoint>
 #include <QtCore/QString>
+#include <QtCore/QStringList>
 #include <QtCore/QVariant>
 
 #include <deque>
@@ -35,12 +52,20 @@ class MainWindow;
 
 namespace ruumbledesk {
 
+class TransmitControl;
+
 class DeskChannel : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QString version READ version CONSTANT)
 	/** Ruumble Client's own version (VERSION), for the web UI's "a newer client is out" (ruumble-server#18) */
 	Q_PROPERTY(QString clientVersion READ clientVersion CONSTANT)
 	Q_PROPERTY(QString server READ server NOTIFY serverChanged)
+	Q_PROPERTY(QString transmitMode READ transmitMode NOTIFY transmitModeChanged)
+	Q_PROPERTY(bool transmitting READ transmitting NOTIFY transmittingChanged)
+	Q_PROPERTY(double micLevel READ micLevel NOTIFY micLevelChanged)
+	Q_PROPERTY(bool latched READ latched NOTIFY latchedChanged)
+	Q_PROPERTY(QVariantMap pttKey READ pttKey NOTIFY pttKeyChanged)
+	Q_PROPERTY(QVariantMap pttOptions READ pttOptions NOTIFY pttOptionsChanged)
 
 public:
 	/** allowed() says whether the page that calls is the Ruumble service (checked on every call) */
@@ -50,6 +75,12 @@ public:
 	QString version() const;
 	QString clientVersion() const;
 	QString server() const { return m_server; }
+	QString transmitMode() const;
+	bool transmitting() const;
+	double micLevel() const;
+	bool latched() const;
+	QVariantMap pttKey() const;
+	QVariantMap pttOptions() const;
 
 	/** also tells the integration that the page has the Desk panel (panelSeen) */
 	Q_INVOKABLE QVariantList history();
@@ -75,12 +106,32 @@ public:
 	/** removes a channel (the server moves its people to the parent channel) */
 	Q_INVOKABLE QVariantMap removeChannel(int channelId);
 
+	Q_INVOKABLE bool setTransmitMode(const QString &mode);
+	Q_INVOKABLE void pushToTalk(bool down);
+	Q_INVOKABLE void setLatched(bool on);
+	Q_INVOKABLE void watchLevel(bool on);
+	Q_INVOKABLE bool captureKey();
+	Q_INVOKABLE void capturePageKey(const QStringList &codes);
+	Q_INVOKABLE void cancelCapture();
+	Q_INVOKABLE bool acceptKey();
+	Q_INVOKABLE bool setPttOption(const QString &name, const QVariant &value);
+
+	/** from the integration: the page reloads, leaves or crashed; lets go of everything it held */
+	void releasePage();
+
 	/** from the integration: connection to a Mumble server changed */
 	void setServer(const QString &server);
 
 signals:
 	void logged(const QVariantMap &entry);
 	void serverChanged();
+	void transmitModeChanged();
+	void transmittingChanged();
+	void micLevelChanged();
+	void latchedChanged();
+	void pttKeyChanged();
+	void pttOptionsChanged();
+	void keyCaptured(const QVariantMap &key);
 	/** the page asked for the log: it has the Desk panel (web UI 0.33.0 or newer) */
 	void panelSeen();
 	// to the integration, queued: a nested menu loop must not run inside the web channel's message handler
@@ -93,6 +144,7 @@ private:
 	void onLogged(Log::MsgType type, const QString &plain, bool own);
 
 	MainWindow *m_mw;
+	TransmitControl *m_transmit;
 	std::function< bool() > m_allowed;
 	std::function< void(const QPoint &) > m_showMenu;
 	std::function< void(bool) > m_showUserList;

@@ -9,10 +9,15 @@
   City Map (ticket #8): `DESK_LINK=0` starts without a `mumble://` link, so the City Map opens (or "On your next visit"
   enters a building); `DESK_AUTOCONNECT=1` and `DESK_LAST_SERVER=<name>` preset Mumble's auto connect and last
   building (headquarters: `city-map.json` in the test home's data dir); `DESK_LANG=de_DE` for the German texts.
+  `DESK_AUDIO=1` hands over this desktop's PipeWire and PulseAudio (otherwise the client has no sound).
 - `migration.sh`: ticket #15, taking over an installed Mumble. Builds fake Mumble setups in isolated homes, starts
   Ruumble Client with `RUUMBLE_MUMBLE_MIGRATION=take|not-now|never` (answers the dialog) and checks the files and,
   through Ice (`migration-ice.cjs`, test server only), that the connection is the registered user with the token.
   Needs `local-stack.sh up`.
+- `node transmit.mjs`: ticket #9, how the user transmits through the `desk` object (mode, press, latch, key capture and
+  binding, double press, letting go on reload). Needs a client started with `DESK_AUDIO=1 test/run-desk.sh <Name>`,
+  which hands over this desktop's PipeWire and PulseAudio so the own talk state is real (the test user transmits the
+  real microphone to the local test server while it presses).
 - `CDP_WIDTH=900 CDP_HEIGHT=700 node cdp.mjs ...`: the page at another size (default 1280×800), e.g. to check a narrow window.
 - `cdp.mjs shot <png>` / `cdp.mjs eval '<js>'` / `cdp.mjs click <x> <y>`: look into and drive the embedded view (raw CDP;
   Playwright's `connectOverCDP` does not work with QtWebEngine). `click` is a real, trusted mouse click: needed for

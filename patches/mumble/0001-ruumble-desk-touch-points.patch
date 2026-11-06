@@ -1,8 +1,8 @@
 diff --git a/src/mumble/CMakeLists.txt b/src/mumble/CMakeLists.txt
-index 1f3daa5..8f27249 100644
+index 1f3daa534..c9df5ac60 100644
 --- a/src/mumble/CMakeLists.txt
 +++ b/src/mumble/CMakeLists.txt
-@@ -1247,3 +1247,72 @@ if(packaging AND WIN32)
+@@ -1247,3 +1247,75 @@ if(packaging AND WIN32)
  		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/installer/client
  	)
  endif()
@@ -59,6 +59,7 @@ index 1f3daa5..8f27249 100644
 +		"ruumble/DeskChannel.h"
 +		"ruumble/MumbleMigration.cpp"
 +		"ruumble/MumbleMigration.h"
++		"ruumble/PttKeys.h"
 +		"ruumble/QtMumbleApi.cpp"
 +		"ruumble/QtMumbleApi.h"
 +		"ruumble/RuumbleIntegration.cpp"
@@ -67,6 +68,8 @@ index 1f3daa5..8f27249 100644
 +		"ruumble/RuumbleView.h"
 +		"ruumble/ServerPing.cpp"
 +		"ruumble/ServerPing.h"
++		"ruumble/TransmitControl.cpp"
++		"ruumble/TransmitControl.h"
 +		"ruumble/ruumble-desk.qrc"
 +	)
 +	target_include_directories(mumble_client_object_lib PRIVATE "${RUUMBLE_CORE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/ruumble")
@@ -76,7 +79,7 @@ index 1f3daa5..8f27249 100644
 +	target_link_libraries(mumble_client_object_lib PUBLIC ixwebsocket Qt6::WebEngineWidgets Qt6::WebChannel)
 +endif()
 diff --git a/src/mumble/Log.cpp b/src/mumble/Log.cpp
-index e02e6a5..8f02a23 100644
+index e02e6a501..8f02a23ff 100644
 --- a/src/mumble/Log.cpp
 +++ b/src/mumble/Log.cpp
 @@ -735,6 +735,9 @@ void Log::log(MsgType mt, const QString &console, const QString &terse, bool own
@@ -90,7 +93,7 @@ index e02e6a5..8f02a23 100644
  	quint32 flags = Global::get().s.qmMessages.value(mt);
  
 diff --git a/src/mumble/Log.h b/src/mumble/Log.h
-index 620c063..c8d4707 100644
+index 620c063cc..c8d4707c1 100644
 --- a/src/mumble/Log.h
 +++ b/src/mumble/Log.h
 @@ -166,6 +166,10 @@ signals:
@@ -105,7 +108,7 @@ index 620c063..c8d4707 100644
  
  class LogMessage {
 diff --git a/src/mumble/MainWindow.cpp b/src/mumble/MainWindow.cpp
-index 057005f..03f12b3 100644
+index 057005fd8..03f12b3a2 100644
 --- a/src/mumble/MainWindow.cpp
 +++ b/src/mumble/MainWindow.cpp
 @@ -90,6 +90,10 @@
@@ -195,7 +198,7 @@ index 057005f..03f12b3 100644
  	int res           = cd->exec();
  
 diff --git a/src/mumble/MainWindow.h b/src/mumble/MainWindow.h
-index 462630a..6ee3819 100644
+index 462630a48..6ee38198b 100644
 --- a/src/mumble/MainWindow.h
 +++ b/src/mumble/MainWindow.h
 @@ -70,6 +70,12 @@ public:
@@ -222,7 +225,7 @@ index 462630a..6ee3819 100644
  	QMenu *qmChannel;
  	QMenu *qmListener;
 diff --git a/src/mumble/PluginManager.cpp b/src/mumble/PluginManager.cpp
-index ad30270..5419784 100644
+index ad30270dd..541978470 100644
 --- a/src/mumble/PluginManager.cpp
 +++ b/src/mumble/PluginManager.cpp
 @@ -298,6 +298,14 @@ void PluginManager::rescanPlugins() {
@@ -241,7 +244,7 @@ index ad30270..5419784 100644
  				} catch (const PluginError &e) {
  					// If an exception is thrown, this library does not represent a proper plugin
 diff --git a/src/mumble/main.cpp b/src/mumble/main.cpp
-index 3ab90d0..731b55c 100644
+index 3ab90d082..731b55cf1 100644
 --- a/src/mumble/main.cpp
 +++ b/src/mumble/main.cpp
 @@ -72,6 +72,17 @@

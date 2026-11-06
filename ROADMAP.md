@@ -305,3 +305,15 @@ deleted. Done on the branch `merge-ruumble`, pushed to `main` on 2026-11-04 (Kev
       and reconnected after 10 s; seen with `simongrimm.de`, whose second SRV target refuses)
 - [ ] Propose the fix to Mumble upstream (a pull request at mumble-voip/mumble); remove the patch once a Mumble release
       has it
+
+## Push-to-talk in the Ruumble window (#9, Bert, 2026-11-06, branch `9-push-to-talk` in both repos)
+
+Design and decisions: comment on #9. Global key on Wayland: follow-up #18.
+
+- [x] Client: `client/TransmitControl` (mode, own talk state, mic level, the page's press and latch, key capture through
+      Mumble's shortcut engine or from the page, binding as Mumble's push-to-talk shortcut, double press and transmit
+      cue), `client/PttKeys.h` (DOM codes and Mumble's X11 button values); `desk` contract in `DeskChannel.h`; the
+      page's presses are let go on reload, page crash, mode change and quit
+- [x] Headless test `test/transmit.mjs` (`DESK_AUDIO=1 test/run-desk.sh <Name>` hands over PipeWire and PulseAudio)
+- [ ] Web (ruumble-server): mode tab and menu, microphone as talk button, top bar line, key dialog, i18n, what's new
+- [ ] By hand on X11 (key with another window focused) and on a Wayland session; user guide section on what works where

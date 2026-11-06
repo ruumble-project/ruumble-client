@@ -31,6 +31,7 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QTimer>
 #include <QtCore/QPersistentModelIndex>
+#include <QtWebEngineCore/QWebEnginePage>
 #include <QtWidgets/QMessageBox>
 #include <QtGui/QShortcut>
 #include <QtWidgets/QDockWidget>
@@ -160,7 +161,11 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 			setLogVisible(false);
 		}
 	});
-	QObject::connect(m_view, &QWebEngineView::loadStarted, this, [this] { m_panelSeen = false; });
+	QObject::connect(m_view, &QWebEngineView::loadStarted, this, [this] {
+		m_panelSeen = false;
+		m_desk->releasePage(); // a press or latch from the page that goes away must not keep transmitting (#9)
+	});
+	QObject::connect(m_view->page(), &QWebEnginePage::renderProcessTerminated, m_desk, &DeskChannel::releasePage);
 	QObject::connect(m_view, &QWebEngineView::loadFinished, this, [this](bool ok) {
 		if (!ok || !m_view->showsService()) {
 			return;

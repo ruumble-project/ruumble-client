@@ -1,5 +1,7 @@
 #include "DeskChannel.h"
 
+#include "TransmitControl.h"
+
 #include "Channel.h"
 #include "ClientUser.h"
 #include "Global.h"
@@ -44,6 +46,18 @@ DeskChannel::DeskChannel(MainWindow *mw, std::function< bool() > allowed,
 						 QObject *parent)
 	: QObject(parent), m_mw(mw), m_allowed(std::move(allowed)), m_showMenu(std::move(showMenu)),
 	  m_showUserList(std::move(showUserList)) {
+	m_transmit = new TransmitControl(mw, this);
+	QObject::connect(m_transmit, &TransmitControl::modeChanged, this, &DeskChannel::transmitModeChanged);
+	QObject::connect(m_transmit, &TransmitControl::transmittingChanged, this, &DeskChannel::transmittingChanged);
+	QObject::connect(m_transmit, &TransmitControl::levelChanged, this, &DeskChannel::micLevelChanged);
+	QObject::connect(m_transmit, &TransmitControl::latchedChanged, this, &DeskChannel::latchedChanged);
+	QObject::connect(m_transmit, &TransmitControl::keyChanged, this, &DeskChannel::pttKeyChanged);
+	QObject::connect(m_transmit, &TransmitControl::optionsChanged, this, &DeskChannel::pttOptionsChanged);
+	QObject::connect(m_transmit, &TransmitControl::keyCaptured, this, [this](const QVariantMap &key) {
+		if (m_allowed()) {
+			emit keyCaptured(key);
+		}
+	});
 	attachLog();
 }
 
@@ -250,6 +264,80 @@ void DeskChannel::showUserList(bool on) {
 	if (m_allowed()) {
 		m_showUserList(on);
 	}
+}
+
+// How the user transmits (ticket #9): TransmitControl does the work, the page only asks and presses.
+QString DeskChannel::transmitMode() const {
+	return m_transmit->mode();
+}
+
+bool DeskChannel::transmitting() const {
+	return m_transmit->transmitting();
+}
+
+double DeskChannel::micLevel() const {
+	return m_transmit->level();
+}
+
+bool DeskChannel::latched() const {
+	return m_transmit->latched();
+}
+
+QVariantMap DeskChannel::pttKey() const {
+	return m_transmit->key();
+}
+
+QVariantMap DeskChannel::pttOptions() const {
+	return m_transmit->options();
+}
+
+bool DeskChannel::setTransmitMode(const QString &mode) {
+	return m_allowed() && m_transmit->setMode(mode);
+}
+
+void DeskChannel::pushToTalk(bool down) {
+	// letting go is always allowed: a press must never stay down because the page changed in between
+	if (!down || m_allowed()) {
+		m_transmit->press(down);
+	}
+}
+
+void DeskChannel::setLatched(bool on) {
+	if (!on || m_allowed()) {
+		m_transmit->setLatched(on);
+	}
+}
+
+void DeskChannel::watchLevel(bool on) {
+	m_transmit->watchLevel(on && m_allowed());
+}
+
+bool DeskChannel::captureKey() {
+	return m_allowed() && m_transmit->startCapture();
+}
+
+void DeskChannel::capturePageKey(const QStringList &codes) {
+	if (m_allowed()) {
+		m_transmit->capturePageKey(codes);
+	}
+}
+
+void DeskChannel::cancelCapture() {
+	m_transmit->cancelCapture();
+}
+
+bool DeskChannel::acceptKey() {
+	return m_allowed() && m_transmit->acceptKey();
+}
+
+bool DeskChannel::setPttOption(const QString &name, const QVariant &value) {
+	return m_allowed() && m_transmit->setOption(name, value);
+}
+
+void DeskChannel::releasePage() {
+	m_transmit->releasePage();
+	m_transmit->cancelCapture();
+	m_transmit->watchLevel(false);
 }
 
 void DeskChannel::setServer(const QString &server) {

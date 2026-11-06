@@ -4,6 +4,7 @@
 #   DESK_LINK=0 starts without a mumble:// link: the City Map (or "On your next visit") decides what happens
 #   DESK_AUTOCONNECT=1 sets Mumble's "connect automatically" (with the City Map's city-map.json: "On your next visit"),
 #   DESK_LAST_SERVER=<name> the last visited building, DESK_LANG=de_DE the system language
+#   DESK_AUDIO=1 hands over this desktop's PipeWire and PulseAudio (the microphone is real), so the own talk state works (#9)
 # WebEngine DevTools on 127.0.0.1:9333 (for Playwright over CDP). Log: $T/desk-<Name>.log
 set -eu
 T="$(cd "$(dirname "$0")" && pwd)/.work"; mkdir -p "$T"
@@ -46,8 +47,11 @@ db.commit()
 PY
 
 link="mumble://$user@127.0.0.1:64738/"
+audio=""
+run="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+[ "${DESK_AUDIO:-0}" = 1 ] && audio="PULSE_SERVER=unix:$run/pulse/native PIPEWIRE_REMOTE=$run/pipewire-0"
 [ "${DESK_LINK:-1}" = 0 ] && link=""
-env -i HOME="$H" PATH=/usr/bin:/bin LANG=${DESK_LANG:-en_US}.UTF-8 XDG_RUNTIME_DIR="$H/run" \
+env -i HOME="$H" PATH=/usr/bin:/bin LANG=${DESK_LANG:-en_US}.UTF-8 XDG_RUNTIME_DIR="$H/run" $audio \
   QT_QPA_PLATFORM=offscreen QTWEBENGINE_REMOTE_DEBUGGING=127.0.0.1:${DEVTOOLS_PORT:-9333} \
   QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu" RUUMBLE_LOG_STDERR=1 \
   bash -c 'mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR" && exec "$0" "$@"' \
