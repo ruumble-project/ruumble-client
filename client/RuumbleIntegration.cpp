@@ -367,6 +367,10 @@ void RuumbleIntegration::showChannelMenu(unsigned int channelId, const QPoint &v
 		if (!c || !root || c == root) {
 			return;
 		}
+		// a floor with rooms below another floor: its rooms would be a third level, which the building cannot show
+		if (c->cParent == root && !c->qlChannels.isEmpty()) {
+			return;
+		}
 		QMenu *floors = new QMenu(tr("Move to floor"), m_mw->qmChannel);
 		QObject::connect(m_mw->qmChannel, &QMenu::aboutToHide, floors, &QObject::deleteLater);
 		for (Channel *floor : root->qlChannels) {
@@ -404,7 +408,13 @@ void RuumbleIntegration::showChannelMenu(unsigned int channelId, const QPoint &v
 		}
 		qInfo() << "Ruumble Client: channel menu for" << c->qsName << actionTitles(m_mw->qmChannel);
 	});
+	// the building has two levels (ADR-0007): floors (below the root) and rooms (below a floor). "Add" on a room would
+	// make a third level, which locks the whole floor, so a room's menu does not offer it. Mumble's action is shared
+	// with its own tree, hence shown again right after
+	const bool room = channel->cParent && channel->cParent->cParent;
+	m_mw->qaChannelAdd->setVisible(!room);
 	m_mw->qmChannel->exec(global);
+	m_mw->qaChannelAdd->setVisible(true);
 	QObject::disconnect(extra);
 }
 

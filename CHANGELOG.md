@@ -17,6 +17,10 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 - Ruumble Client no longer takes over Mumble's audio settings and shortcuts silently on its first start; the new question includes them (#15)
 
+### Fixed
+
+- Right click on a room no longer offers "Add...", and a floor with rooms no longer offers "Move to floor": both made a third channel level, which locks the whole floor in the building (#16)
+
 ## [0.36.0] - 2026-11-05
 
 ### Added
