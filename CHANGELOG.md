@@ -9,6 +9,7 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ### Added
 
+- `desk` for the rooms in the floor care: `createChannel(parentId, name)` (a permanent room, as Mumble's own "Add"), `removeChannel(channelId)`, and `position` in `updateChannel`, so the web UI can add, delete and order rooms; Mumble checks the permissions (#12)
 - `desk` for Ruumble's edit dialog (ruumble-server#15): `channelProperties(channelId)` (name, maximum users, the description's hash) and `updateChannel(channelId, { name?, description?, maxUsers? })`, which sends one ChannelState and stores the description as given, Markdown as plain text instead of the HTML of Mumble's dialog
 
 ### Fixed

@@ -197,6 +197,10 @@ QVariantMap DeskChannel::updateChannel(int channelId, const QVariantMap &changes
 		result.insert(QStringLiteral("descriptionHash"), description.isEmpty() ? QString() : descriptionHash(description));
 		any = true;
 	}
+	if (changes.contains(QStringLiteral("position"))) {
+		mpcs.set_position(changes.value(QStringLiteral("position")).toInt());
+		any = true;
+	}
 	if (changes.contains(QStringLiteral("maxUsers"))) {
 		const int maxUsers = changes.value(QStringLiteral("maxUsers")).toInt();
 		if (maxUsers < 0) {
@@ -210,6 +214,28 @@ QVariantMap DeskChannel::updateChannel(int channelId, const QVariantMap &changes
 	}
 	result.insert(QStringLiteral("sent"), any);
 	return result;
+}
+
+QVariantMap DeskChannel::createChannel(int parentId, const QString &name) {
+	const Channel *parent = parentId >= 0 ? Channel::get(static_cast< unsigned int >(parentId)) : nullptr;
+	const QString trimmed = name.trimmed();
+	if (!m_allowed() || !parent || trimmed.isEmpty() || !Global::get().sh) {
+		return { { QStringLiteral("sent"), false } };
+	}
+	// as Mumble's own "Add" dialog does: permanent, no description, position 0, no user limit
+	Global::get().sh->createChannel(parent->iId, trimmed, QString(), 0, false, 0);
+	return { { QStringLiteral("sent"), true } };
+}
+
+QVariantMap DeskChannel::removeChannel(int channelId) {
+	const Channel *c = channelId > 0 ? Channel::get(static_cast< unsigned int >(channelId)) : nullptr;
+	if (!m_allowed() || !c || !Global::get().sh) {
+		return { { QStringLiteral("sent"), false } };
+	}
+	MumbleProto::ChannelRemove mpcr;
+	mpcr.set_channel_id(c->iId);
+	Global::get().sh->sendMessage(mpcr);
+	return { { QStringLiteral("sent"), true } };
 }
 
 void DeskChannel::showUserList(bool on) {

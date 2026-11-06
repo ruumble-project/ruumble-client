@@ -8,10 +8,12 @@
 //               showChannelMenu(channelId, x, y), showUserMenu(session, x, y) (Mumble's own context menus for a
 //               channel or a user: add, remove, edit, ACL, links, kick, ban, ... ), moveUser(session, channelId),
 //               channelProperties(channelId) -> { name, maxUsers, descriptionHash } | {} (unknown channel),
-//               updateChannel(channelId, { name?, description?, maxUsers? }) -> { sent, descriptionHash? }
+//               updateChannel(channelId, { name?, description?, maxUsers?, position? }) -> { sent, descriptionHash? }
 //               (Ruumble's edit dialog, server#15: sends one ChannelState with the given fields; the server decides,
 //               the page sees the result in channelProperties and the next snapshot. descriptionHash: SHA-1 hex of the
 //               description as UTF-8, as Mumble keeps it)
+//               createChannel(parentId, name) -> { sent }, removeChannel(channelId) -> { sent } (the rooms of the floor
+//               care, client#12; Mumble checks the permissions and moves the people of a removed channel to its parent)
 //   entry       { id: number, time: ms since epoch, kind: "text"|"private"|"own"|"warning"|"info", text: string }
 // Log texts are plain text (never Mumble's HTML), so the page can show them without parsing markup.
 
@@ -64,6 +66,10 @@ public:
 	Q_INVOKABLE QVariantMap channelProperties(int channelId);
 	/** changes name, description (stored as given, never turned into HTML) and maximum users of a channel */
 	Q_INVOKABLE QVariantMap updateChannel(int channelId, const QVariantMap &changes);
+	/** a new permanent channel below `parentId` (a room on a floor) */
+	Q_INVOKABLE QVariantMap createChannel(int parentId, const QString &name);
+	/** removes a channel (the server moves its people to the parent channel) */
+	Q_INVOKABLE QVariantMap removeChannel(int channelId);
 
 	/** from the integration: connection to a Mumble server changed */
 	void setServer(const QString &server);
