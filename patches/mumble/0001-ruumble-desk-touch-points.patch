@@ -1,8 +1,8 @@
 diff --git a/src/mumble/CMakeLists.txt b/src/mumble/CMakeLists.txt
-index 1f3daa5..5626d95 100644
+index 1f3daa5..8f27249 100644
 --- a/src/mumble/CMakeLists.txt
 +++ b/src/mumble/CMakeLists.txt
-@@ -1247,3 +1247,60 @@ if(packaging AND WIN32)
+@@ -1247,3 +1247,72 @@ if(packaging AND WIN32)
  		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/installer/client
  	)
  endif()
@@ -24,6 +24,18 @@ index 1f3daa5..5626d95 100644
 +	string(REGEX MATCH "VERSION ([0-9]+\\.[0-9]+\\.[0-9]+)" _ "${RUUMBLE_PROJECT_LINE}")
 +	set(RUUMBLE_CORE_VERSION "${CMAKE_MATCH_1}")
 +	message(STATUS "Ruumble Client: core ${RUUMBLE_CORE_VERSION} from ${RUUMBLE_SOURCE_DIR}")
++	# Ruumble Client's own version (VERSION of ruumble-client, desk.clientVersion): given (Nix), else read next to client/
++	if(NOT RUUMBLE_CLIENT_VERSION)
++		get_filename_component(RUUMBLE_CLIENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ruumble" REALPATH)
++		if(EXISTS "${RUUMBLE_CLIENT_DIR}/../VERSION")
++			file(READ "${RUUMBLE_CLIENT_DIR}/../VERSION" RUUMBLE_CLIENT_VERSION)
++			string(STRIP "${RUUMBLE_CLIENT_VERSION}" RUUMBLE_CLIENT_VERSION)
++			set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${RUUMBLE_CLIENT_DIR}/../VERSION")
++		else()
++			set(RUUMBLE_CLIENT_VERSION "unknown")
++		endif()
++	endif()
++	message(STATUS "Ruumble Client: version ${RUUMBLE_CLIENT_VERSION}")
 +
 +	include(FetchContent)
 +	set(USE_TLS ON CACHE BOOL "" FORCE)
@@ -59,7 +71,7 @@ index 1f3daa5..5626d95 100644
 +	)
 +	target_include_directories(mumble_client_object_lib PRIVATE "${RUUMBLE_CORE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/ruumble")
 +	# the full path: on case-insensitive file systems (Windows) Mumble's src/Net.h would answer "net.h"
-+	target_compile_definitions(mumble_client_object_lib PUBLIC USE_RUUMBLE RUUMBLE_CORE_VERSION="${RUUMBLE_CORE_VERSION}"
++	target_compile_definitions(mumble_client_object_lib PUBLIC USE_RUUMBLE RUUMBLE_CORE_VERSION="${RUUMBLE_CORE_VERSION}" RUUMBLE_CLIENT_VERSION="${RUUMBLE_CLIENT_VERSION}"
 +		RUUMBLE_CORE_NET_H="${RUUMBLE_CORE_DIR}/net.h")
 +	target_link_libraries(mumble_client_object_lib PUBLIC ixwebsocket Qt6::WebEngineWidgets Qt6::WebChannel)
 +endif()

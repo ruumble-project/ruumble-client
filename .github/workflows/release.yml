@@ -90,6 +90,9 @@ jobs:
           set -euo pipefail
           mkdir -p assets
           cp dist/Ruumble_Client-x86_64.AppImage "assets/Ruumble_Client-$VERSION-x86_64.AppImage"
+          # the AppImage updates itself from the latest release (tools/appimage.sh): the .zsync of the versioned name
+          sudo apt-get install -y -qq zsync >/dev/null
+          (cd assets && zsyncmake -u "Ruumble_Client-$VERSION-x86_64.AppImage" -o "Ruumble_Client-$VERSION-x86_64.AppImage.zsync" "Ruumble_Client-$VERSION-x86_64.AppImage")
           cp dist/*.deb dist/*.rpm dist/*.pkg.tar.zst assets/
           (cd assets && sha256sum * > SHA256SUMS)
           cat assets/SHA256SUMS
@@ -110,6 +113,7 @@ jobs:
             echo "- **Arch Linux:** \`sudo pacman -U $arch\`"
             echo "- **NixOS / Nix:** \`nix run github:$GITHUB_REPOSITORY/v$VERSION\`, or the flake in a NixOS configuration (\`programs.ruumble-client.enable = true;\`, see the README)"
             echo "- **Any other distribution:** \`Ruumble_Client-$VERSION-x86_64.AppImage\`, one file with Qt and Qt WebEngine inside (\`chmod +x\`, then start it)."
+            echo "  It updates itself: [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) or [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) fetch only what changed."
             echo
             echo "The packages replace an installed \`ruumble-desk\`. It needs a Ruumble service: [ruumble-server](https://github.com/ruumble-project/ruumble-server/releases)."
           } > notes.md

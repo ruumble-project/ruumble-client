@@ -101,6 +101,7 @@ stdenv.mkDerivation {
 
   # the same options as tools/build.sh, plus what the sandbox needs
   cmakeFlags = [
+    "-DRUUMBLE_CLIENT_VERSION=${version}"
     "-Dserver=OFF"
     "-Dtests=OFF"
     "-Doverlay-xcompile=OFF"

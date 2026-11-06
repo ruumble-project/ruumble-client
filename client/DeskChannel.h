@@ -1,6 +1,7 @@
 // Ruumble Client: what the Ruumble web UI may use of the client, over QWebChannel as object "desk".
 // Contract with web/src/lib/desk/ in ruumble-server (submodule server/):
-//   properties  version (string), server (string, "host:port" or empty while not connected)
+//   properties  version (string, Mumble's), clientVersion (string, Ruumble Client's VERSION or "unknown"; 0.39.0 and
+//               newer), server (string, "host:port" or empty while not connected)
 //   signals     logged(entry), serverChanged()
 //   methods     history() -> entry[], sendMessage(text) -> bool,
 //               openSettings(), openConnect(), openAudioWizard(), disconnectServer(),
@@ -37,6 +38,8 @@ namespace ruumbledesk {
 class DeskChannel : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QString version READ version CONSTANT)
+	/** Ruumble Client's own version (VERSION), for the web UI's "a newer client is out" (ruumble-server#18) */
+	Q_PROPERTY(QString clientVersion READ clientVersion CONSTANT)
 	Q_PROPERTY(QString server READ server NOTIFY serverChanged)
 
 public:
@@ -45,6 +48,7 @@ public:
 				std::function< void(bool) > showUserList, QObject *parent);
 
 	QString version() const;
+	QString clientVersion() const;
 	QString server() const { return m_server; }
 
 	/** also tells the integration that the page has the Desk panel (panelSeen) */

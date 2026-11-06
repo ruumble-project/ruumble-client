@@ -51,6 +51,9 @@ export QMAKE=/usr/lib/qt6/bin/qmake6
 export EXTRA_QT_PLUGINS="sqldrivers;tls;iconengines"
 export ARCH=x86_64
 export LDAI_OUTPUT="Ruumble_Client-x86_64.AppImage"
+# where AppImageUpdate, Gear Lever and similar tools find the next version (#17): the latest GitHub release and its
+# .zsync file, which the release workflow makes for the versioned name
+export LDAI_UPDATE_INFORMATION="gh-releases-zsync|ruumble-project|ruumble-client|latest|Ruumble_Client-*x86_64.AppImage.zsync"
 export PATH="$TOOLS:$PATH" # linuxdeploy looks for linuxdeploy-plugin-qt-*.AppImage on PATH
 # NSS (Chromium's crypto, needed for every HTTPS page) loads its modules at run time, next to libnss3.so first. They are
 # not linked, so linuxdeploy misses them; without them NSS takes the host's, which do not fit the bundled libnssutil3

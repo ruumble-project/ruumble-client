@@ -60,6 +60,14 @@ QString DeskChannel::version() const {
 	return Version::toString(Version::get());
 }
 
+QString DeskChannel::clientVersion() const {
+#ifdef RUUMBLE_CLIENT_VERSION
+	return QStringLiteral(RUUMBLE_CLIENT_VERSION);
+#else
+	return QStringLiteral("unknown");
+#endif
+}
+
 void DeskChannel::onLogged(Log::MsgType type, const QString &plain, bool own) {
 	if (plain.trimmed().isEmpty()) {
 		return;

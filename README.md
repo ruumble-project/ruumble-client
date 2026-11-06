@@ -51,6 +51,22 @@ automatically at start). Mumble's own server list stays in the Mumble menu (F10)
 
 Build dependencies (Ubuntu/Mint, once): see `CLAUDE.md`.
 
+## Updating
+
+Ruumble shows when a newer Ruumble Client is out: a red dot on the name badge, and "Ruumble Client <version> is out"
+at the top of the user menu, which opens the release (from client 0.39.0, with a Ruumble service 0.39.0 or newer).
+
+- **AppImage:** it carries its update information (the latest GitHub release and its `.zsync` file), so
+  [Gear Lever](https://flathub.org/apps/it.mijorus.gearlever) or
+  [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) update it in place and only download what
+  changed. Without them: download the new AppImage from the release and replace the old file.
+- **.deb, .rpm, Arch package:** download the new package from the release and install it over the old one
+  (`sudo apt install ./ruumble-client_<version>+<distro>_amd64.deb`, `sudo dnf install ./ruumble-client-<version>-1.fc<NN>.x86_64.rpm`,
+  `sudo pacman -U ruumble-client-<version>-1-x86_64.pkg.tar.zst`).
+- **Nix:** move the pinned tag (`github:ruumble-project/ruumble-client/v<version>`).
+
+Settings, certificate and servers stay; nothing to do after an update.
+
 ## Program and AppImage
 
 ```sh
