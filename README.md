@@ -1,5 +1,7 @@
 # Ruumble Client
 
+> **New to Ruumble?** The [project page](https://github.com/ruumble-project) shows what Ruumble is, a short demo and how to get it. This README is about building Ruumble Client.
+
 A Mumble client with Ruumble built in: one window, the Ruumble building as the whole UI, Mumble's audio
 underneath (local pilot of ADR-0024, draft in `docs/ADR-0024-draft.md`).
 
