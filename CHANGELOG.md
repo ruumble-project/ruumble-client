@@ -7,6 +7,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-11-07
+
 ### Added
 
 - **Listening in:** the `desk` object lets the Ruumble web UI listen in on other rooms (`startListening`,
