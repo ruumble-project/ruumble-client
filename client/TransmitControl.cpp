@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace ruumbledesk {
 
@@ -114,6 +115,12 @@ void TransmitControl::setLatched(bool on) {
 	}
 	m_latched = on;
 	trigger(on);
+	if (!on) {
+		// Mumble's own double push ("press twice quickly") latches on the interval of the last two presses, and a
+		// double click on the microphone plus the latch press count as such: it stayed open until the next press.
+		// Letting go of the page's latch ends Mumble's as well
+		Global::get().uiDoublePush = std::numeric_limits< quint64 >::max();
+	}
 	emit latchedChanged();
 }
 
