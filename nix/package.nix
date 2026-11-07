@@ -50,10 +50,12 @@ let
     builtins.filter (f: lib.hasSuffix ".patch" f) (builtins.attrNames (builtins.readDir (root + "/patches/upstream")))
   );
   buildNumber = lib.last (lib.splitString "." pin.rev);
+  # a binding of its own: the cmake flags below use it (an attribute of mkDerivation is no variable there)
+  version = lib.fileContents (root + "/VERSION");
 in
 stdenv.mkDerivation {
   pname = "ruumble-client";
-  version = lib.fileContents (root + "/VERSION");
+  inherit version;
 
   src = mumbleSrc;
 
