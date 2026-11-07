@@ -14,6 +14,14 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
   Ruumble's signs with a Lucide glyph each; the window icon is Ruumble's too (it was Mumble's in the window list).
   Mumble is not changed: `client/TrayIcons.h` replaces the main window's icons at start, `tools/make-tray-icons.py`
   writes `client/tray/`
+
+### Fixed
+
+- **The tray showed a blue information icon instead of the state:** Mumble pops up a desktop notification for events
+  whenever its log is not visible, and in Ruumble Client it never is, so every mute, room change or listening put the
+  tray icon into "needs attention" with the information icon. Once, these notifications go off for everything the
+  building shows anyway; text messages, warnings, errors and being kicked keep them (`quietBalloons` in
+  `client/TrayIcons.h`)
 - **Listening in:** the `desk` object lets the Ruumble web UI listen in on other rooms (`startListening`,
   `stopListening`, `setListeningVolume` sent to the server like Mumble's own slider, the `listening` list with volumes),
   passes on refusals of the server (permission, listener limits) and switches Mumble's listener attenuation

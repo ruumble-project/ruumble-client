@@ -112,6 +112,7 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 	Global::get().s.qbaMinimalViewState = QByteArray();
 	// Ruumble's own icons for the window and every tray state, before main() creates the tray icon
 	applyTrayIcons(mw);
+	quietBalloons();
 
 	m_desk = new DeskChannel(
 		mw, [this] { return m_view && m_view->showsService(); },

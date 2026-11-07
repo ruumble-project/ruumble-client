@@ -6,7 +6,12 @@
 #ifndef MUMBLE_MUMBLE_RUUMBLE_TRAYICONS_H_
 #define MUMBLE_MUMBLE_RUUMBLE_TRAYICONS_H_
 
+#include "Global.h"
+#include "Log.h"
 #include "MainWindow.h"
+#include "Settings.h"
+
+#include <QtCore/QSettings>
 
 #include <QtGui/QIcon>
 #include <QtGui/QPainter>
@@ -52,6 +57,31 @@ inline void applyTrayIcons(MainWindow *mw) {
 	// Mumble set its own as the window icon: the window list showed it next to Ruumble's taskbar entry
 	qApp->setWindowIcon(mw->qiIcon);
 	mw->setWindowIcon(mw->qiIcon);
+}
+
+/**
+ * Mumble's pop-up notifications ("balloons") for events: it shows them whenever its log is not visible, and in Ruumble
+ * Client the log is never visible (the building and the Desk panel are), so every mute, room change or listening came
+ * as a desktop notification. Each one also puts the tray icon into "needs attention" with Qt's information icon, so
+ * the tray showed a blue "i" instead of the state. Once, they go off for everything the building shows anyway; text
+ * messages, warnings and errors keep them. The user's later choice in Mumble's settings stays.
+ */
+inline void quietBalloons() {
+	QSettings marker;
+	const QString key = QStringLiteral("tray/balloonsQuieted");
+	if (marker.value(key, false).toBool()) {
+		return;
+	}
+	marker.setValue(key, true);
+	Settings &s = Global::get().s;
+	for (int type = Log::firstMsgType; type <= Log::lastMsgType; ++type) {
+		if (type == Log::TextMessage || type == Log::PrivateTextMessage || type == Log::Warning
+			|| type == Log::CriticalError || type == Log::YouKicked) {
+			continue;
+		}
+		s.qmMessages[type] = s.qmMessages.value(type) & ~static_cast< quint32 >(Settings::LogBalloon);
+	}
+	s.save();
 }
 
 } // namespace ruumbledesk
