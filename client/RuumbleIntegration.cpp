@@ -5,6 +5,7 @@
 #include "MumbleMigration.h"
 #include "QtMumbleApi.h"
 #include "RuumbleView.h"
+#include "TrayIcons.h"
 
 #include "Channel.h"
 #include "ClientUser.h"
@@ -109,6 +110,8 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 	// earlier build crashed in Qt's layout: only the window geometry is kept (cleared before MainWindow::loadState)
 	Global::get().s.qbaMainWindowState  = QByteArray();
 	Global::get().s.qbaMinimalViewState = QByteArray();
+	// Ruumble's own icons for the window and every tray state, before main() creates the tray icon
+	applyTrayIcons(mw);
 
 	m_desk = new DeskChannel(
 		mw, [this] { return m_view && m_view->showsService(); },

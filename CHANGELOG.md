@@ -9,6 +9,11 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ### Added
 
+- **Ruumble's own tray icons:** one sign per state instead of Mumble's icons (still, talking, whisper, shout, muted by
+  yourself, by the server, suppressed, push to mute, deafened by yourself or the server, new message), in the style of
+  Ruumble's signs with a Lucide glyph each; the window icon is Ruumble's too (it was Mumble's in the window list).
+  Mumble is not changed: `client/TrayIcons.h` replaces the main window's icons at start, `tools/make-tray-icons.py`
+  writes `client/tray/`
 - **Listening in:** the `desk` object lets the Ruumble web UI listen in on other rooms (`startListening`,
   `stopListening`, `setListeningVolume` sent to the server like Mumble's own slider, the `listening` list with volumes),
   passes on refusals of the server (permission, listener limits) and switches Mumble's listener attenuation

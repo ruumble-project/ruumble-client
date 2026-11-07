@@ -5,5 +5,29 @@
 		<file alias="citymap.html">citymap/citymap.html</file>
 		<file alias="ptt-on.wav">sounds/ptt-on.wav</file>
 		<file alias="ptt-off.wav">sounds/ptt-off.wav</file>
+		<file alias="tray/app-small.svg">tray/app-small.svg</file>
+		<file alias="tray/app.svg">tray/app.svg</file>
+		<file alias="tray/deafened-self-small.svg">tray/deafened-self-small.svg</file>
+		<file alias="tray/deafened-self.svg">tray/deafened-self.svg</file>
+		<file alias="tray/deafened-server-small.svg">tray/deafened-server-small.svg</file>
+		<file alias="tray/deafened-server.svg">tray/deafened-server.svg</file>
+		<file alias="tray/information-small.svg">tray/information-small.svg</file>
+		<file alias="tray/information.svg">tray/information.svg</file>
+		<file alias="tray/muted-push-to-mute-small.svg">tray/muted-push-to-mute-small.svg</file>
+		<file alias="tray/muted-push-to-mute.svg">tray/muted-push-to-mute.svg</file>
+		<file alias="tray/muted-self-small.svg">tray/muted-self-small.svg</file>
+		<file alias="tray/muted-self.svg">tray/muted-self.svg</file>
+		<file alias="tray/muted-server-small.svg">tray/muted-server-small.svg</file>
+		<file alias="tray/muted-server.svg">tray/muted-server.svg</file>
+		<file alias="tray/muted-suppressed-small.svg">tray/muted-suppressed-small.svg</file>
+		<file alias="tray/muted-suppressed.svg">tray/muted-suppressed.svg</file>
+		<file alias="tray/talking-off-small.svg">tray/talking-off-small.svg</file>
+		<file alias="tray/talking-off.svg">tray/talking-off.svg</file>
+		<file alias="tray/talking-on-small.svg">tray/talking-on-small.svg</file>
+		<file alias="tray/talking-on.svg">tray/talking-on.svg</file>
+		<file alias="tray/talking-shout-small.svg">tray/talking-shout-small.svg</file>
+		<file alias="tray/talking-shout.svg">tray/talking-shout.svg</file>
+		<file alias="tray/talking-whisper-small.svg">tray/talking-whisper-small.svg</file>
+		<file alias="tray/talking-whisper.svg">tray/talking-whisper.svg</file>
 	</qresource>
 </RCC>
