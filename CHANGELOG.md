@@ -9,6 +9,11 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ### Added
 
+- **Listening in:** the `desk` object lets the Ruumble web UI listen in on other rooms (`startListening`,
+  `stopListening`, `setListeningVolume` sent to the server like Mumble's own slider, the `listening` list with volumes),
+  passes on refusals of the server (permission, listener limits) and switches Mumble's listener attenuation
+  (`listenQuieter`), which Ruumble Client turns on once, the first time a page listens in. The rules (own floor only, ...) are the web UI's; it uses them
+  from ruumble-server's next release on (ruumble-server#19)
 - **How you transmit:** the `desk` object tells the Ruumble web UI the transmit mode, whether you are transmitting and
   the mic level, takes presses and a latch from the page (let go by the client itself when the page reloads, crashes or
   the mode changes) and sets the push-to-talk key as Mumble's own shortcut, captured through Mumble's shortcut engine

@@ -32,6 +32,15 @@
 //               scope: "global"|"window" (window: the key works only while Ruumble Client has the focus, e.g. Wayland),
 //               warn: bool (a key that types or acts in other programs too) }
 // The client lets go of the page's presses by itself when the page reloads or leaves, the mode changes or it quits.
+// Listening in on other rooms (server#19; all of it absent in older clients, the page checks for startListening):
+//   properties  listening ([{ channel: int, volume: double (dB) }]: the channels the own user listens to, as Mumble
+//               has them once the server confirmed), listenQuieter (bool: Mumble's listener attenuation, quieter while
+//               someone talks in the own channel; switched on once when a page first listens in, the user may turn it off)
+//   signals     listeningChanged(), listenQuieterChanged(),
+//               listeningRefused(channelId, reason) (reason "permission"|"channel-limit"|"user-limit")
+//   methods     startListening(channelId), stopListening(channelIds), setListeningVolume(channelId, db) (-30..+12, sent
+//               to the server like Mumble's own slider), setListenQuieter(on)
+// Which rooms may be listened to (the own floor, ...) is the page's rule; the client does what it asks.
 // Log texts are plain text (never Mumble's HTML), so the page can show them without parsing markup.
 
 #ifndef MUMBLE_MUMBLE_RUUMBLE_DESKCHANNEL_H_
@@ -39,7 +48,10 @@
 
 #include "Log.h"
 
+#include <QtCore/QHash>
 #include <QtCore/QObject>
+#include <QtCore/QSet>
+#include <QtCore/QTimer>
 #include <QtCore/QPoint>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
@@ -66,6 +78,8 @@ class DeskChannel : public QObject {
 	Q_PROPERTY(bool latched READ latched NOTIFY latchedChanged)
 	Q_PROPERTY(QVariantMap pttKey READ pttKey NOTIFY pttKeyChanged)
 	Q_PROPERTY(QVariantMap pttOptions READ pttOptions NOTIFY pttOptionsChanged)
+	Q_PROPERTY(QVariantList listening READ listening NOTIFY listeningChanged)
+	Q_PROPERTY(bool listenQuieter READ listenQuieter NOTIFY listenQuieterChanged)
 
 public:
 	/** allowed() says whether the page that calls is the Ruumble service (checked on every call) */
@@ -81,6 +95,8 @@ public:
 	bool latched() const;
 	QVariantMap pttKey() const;
 	QVariantMap pttOptions() const;
+	QVariantList listening() const;
+	bool listenQuieter() const;
 
 	/** also tells the integration that the page has the Desk panel (panelSeen) */
 	Q_INVOKABLE QVariantList history();
@@ -116,6 +132,11 @@ public:
 	Q_INVOKABLE bool acceptKey();
 	Q_INVOKABLE bool setPttOption(const QString &name, const QVariant &value);
 
+	Q_INVOKABLE void startListening(int channelId);
+	Q_INVOKABLE void stopListening(const QVariantList &channelIds);
+	Q_INVOKABLE void setListeningVolume(int channelId, double db);
+	Q_INVOKABLE void setListenQuieter(bool on);
+
 	/** from the integration: the page reloads, leaves or crashed; lets go of everything it held */
 	void releasePage();
 
@@ -132,6 +153,9 @@ signals:
 	void pttKeyChanged();
 	void pttOptionsChanged();
 	void keyCaptured(const QVariantMap &key);
+	void listeningChanged();
+	void listenQuieterChanged();
+	void listeningRefused(int channelId, const QString &reason);
 	/** the page asked for the log: it has the Desk panel (web UI 0.33.0 or newer) */
 	void panelSeen();
 	// to the integration, queued: a nested menu loop must not run inside the web channel's message handler
@@ -142,6 +166,12 @@ signals:
 private:
 	void attachLog();
 	void onLogged(Log::MsgType type, const QString &plain, bool own);
+	void attachListening();
+	void sendListeningVolumes();
+	/** switches Mumble's listener attenuation */
+	void setQuieter(bool on);
+	/** switches it on once, the first time a page listens in */
+	void defaultQuieter();
 
 	MainWindow *m_mw;
 	TransmitControl *m_transmit;
@@ -151,6 +181,14 @@ private:
 	QString m_server;
 	std::deque< QVariantMap > m_history;
 	int m_nextId = 1;
+	/** channels asked for and not confirmed yet (with the number of the ask, so an old timeout spares a new ask) */
+	QHash< unsigned int, quint64 > m_listenAsked;
+	quint64 m_lastAsk = 0;
+	/** the channel asked for last: the listener limits name no channel */
+	unsigned int m_lastAskedChannel = 0;
+	/** volumes to send, collected for a moment so dragging the slider does not flood the server */
+	QHash< unsigned int, float > m_volumesToSend;
+	QTimer *m_volumeTimer = nullptr;
 };
 
 } // namespace ruumbledesk
