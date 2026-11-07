@@ -9,19 +9,6 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ### Added
 
-- **Ruumble's own tray icons:** one sign per state instead of Mumble's icons (still, talking, whisper, shout, muted by
-  yourself, by the server, suppressed, push to mute, deafened by yourself or the server, new message), in the style of
-  Ruumble's signs with a Lucide glyph each; the window icon is Ruumble's too (it was Mumble's in the window list).
-  Mumble is not changed: `client/TrayIcons.h` replaces the main window's icons at start, `tools/make-tray-icons.py`
-  writes `client/tray/`
-
-### Fixed
-
-- **The tray showed a blue information icon instead of the state:** Mumble pops up a desktop notification for events
-  whenever its log is not visible, and in Ruumble Client it never is, so every mute, room change or listening put the
-  tray icon into "needs attention" with the information icon. Once, these notifications go off for everything the
-  building shows anyway; text messages, warnings, errors and being kicked keep them (`quietBalloons` in
-  `client/TrayIcons.h`)
 - **Listening in:** the `desk` object lets the Ruumble web UI listen in on other rooms (`startListening`,
   `stopListening`, `setListeningVolume` sent to the server like Mumble's own slider, the `listening` list with volumes),
   passes on refusals of the server (permission, listener limits) and switches Mumble's listener attenuation
@@ -35,11 +22,30 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
   Wayland only while the client has the focus (follow-up #18) (#9)
 - **Push-to-talk cues:** two short tones (`client/sounds/ptt-on.wav`, `ptt-off.wav`, made by `tools/make-cues.py`) replace
   Mumble's default click sounds; cues the user chose in Mumble stay (#9)
+- **Ruumble's own tray icons:** one sign per state instead of Mumble's icons (still, talking, whisper, shout, muted by
+  yourself, by the server, suppressed, push to mute, deafened by yourself or the server, new message), in the style of
+  Ruumble's signs with a Lucide glyph each; the window icon is Ruumble's too (it was Mumble's in the window list).
+  Mumble is not changed: `client/TrayIcons.h` replaces the main window's icons at start, `tools/make-tray-icons.py`
+  writes `client/tray/`
+
+### Changed
+
+- Built with Ruumble 0.40.0 (submodule `server/`, plugin core 0.5.0 unchanged): listening in on a room of your floor
+  through its door, the transmit menu at the microphone, room descriptions always in Markdown ([what's new in
+  0.40.0](https://github.com/ruumble-project/ruumble-server/blob/main/docs/whats-new/0.40.0.md))
 
 ### Fixed
 
+- **The tray showed a blue information icon instead of the state:** Mumble pops up a desktop notification for events
+  whenever its log is not visible, and in Ruumble Client it never is, so every mute, room change or listening put the
+  tray icon into "needs attention" with the information icon. Once, these notifications go off for everything the
+  building shows anyway; text messages, warnings, errors and being kicked keep them (`quietBalloons` in
+  `client/TrayIcons.h`)
 - Asking Mumble's X11 shortcut engine for a key name without a display connection (Wayland without XWayland, headless)
   crashed the client; Ruumble Client only asks it on X11 (#9)
+- Letting go of the microphone's latch also ends Mumble's own double push ("press twice quickly"), so the microphone
+  no longer stays open (#9)
+- The Nix package builds again: the client version is a binding of its own for the CMake flags (#17)
 
 ## [0.39.0] - 2026-11-06
 
