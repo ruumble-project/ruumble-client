@@ -7,6 +7,10 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Changed
+
+- Built with Ruumble 0.41.0 (submodule `server/`, plugin core 0.5.0 unchanged): who is listening in shows as a guest in the room, a paint bucket for the room setup, listening in resumes after a visit, listeners on Mumble 1.5 servers from what Ruumble Client reports ([what's new in 0.41.0](https://github.com/ruumble-project/ruumble-server/blob/main/docs/whats-new/0.41.0.md))
+
 ## [0.40.0] - 2026-11-07
 
 ### Added
