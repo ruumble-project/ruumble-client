@@ -7,6 +7,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+## [0.41.1] - 2026-11-09
+
 ### Fixed
 
 - After the certificate changed (for example by taking over Mumble's settings after the first start), the Ruumble view
