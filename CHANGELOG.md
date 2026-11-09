@@ -7,6 +7,8 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+## [0.41.2] - 2026-11-09
+
 ### Fixed
 
 - The tray icon says "Ruumble Client" as its tooltip instead of "Mumble", and its menu (like Mumble's menu) ends with "Quit Ruumble Client" (German "Ruumble Client beenden")
