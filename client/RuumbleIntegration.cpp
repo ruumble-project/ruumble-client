@@ -14,6 +14,7 @@
 #include "ServerHandler.h"
 #include "UserModel.h"
 #include "Version.h"
+#include "widgets/TrayIcon.h"
 
 #include "config.h"
 #include "core.h"
@@ -29,6 +30,7 @@
 #include <QtCore/QDirIterator>
 #include <QtCore/QFileInfo>
 #include <QtCore/QFile>
+#include <QtCore/QLocale>
 #include <QtCore/QStandardPaths>
 #include <QtCore/QTimer>
 #include <QtCore/QPersistentModelIndex>
@@ -112,6 +114,25 @@ namespace {
 		return url + " " + certHash;
 	}
 
+	/**
+	 * The tray names the program: Mumble's tray icon says "Mumble" as its tooltip and its menu ends with Mumble's
+	 * "Quit Mumble". main() creates the tray icon after the main window, so the tooltip follows once the event loop
+	 * runs. Mumble's translation knows neither text, so German comes from here (the language as in CityMap).
+	 */
+	void nameInTray(MainWindow *mw) {
+		QLocale locale(Global::get().s.qsLanguage);
+		if (locale == QLocale::c()) {
+			locale = QLocale::system();
+		}
+		const bool german = locale.language() == QLocale::German;
+		mw->qaQuit->setText(german ? QStringLiteral("Ruumble Client &beenden") : QStringLiteral("&Quit Ruumble Client"));
+		QTimer::singleShot(0, mw, [] {
+			if (Global::get().trayIcon) {
+				Global::get().trayIcon->setToolTip(QStringLiteral("Ruumble Client"));
+			}
+		});
+	}
+
 } // namespace
 
 RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
@@ -124,6 +145,7 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 	// Ruumble's own icons for the window and every tray state, before main() creates the tray icon
 	applyTrayIcons(mw);
 	quietBalloons();
+	nameInTray(mw);
 
 	m_desk = new DeskChannel(
 		mw, [this] { return m_view && m_view->showsService(); },
