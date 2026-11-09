@@ -7,6 +7,13 @@ Up to 0.33.1 Ruumble Desk was released together with Ruumble; those changes are 
 
 ## [Unreleased]
 
+### Fixed
+
+- After the certificate changed (for example by taking over Mumble's settings after the first start), the Ruumble view
+  said "Mumble is not connected" although the client was connected: the pairing was remembered per service only, so
+  no new pairing link came and the view stayed paired with the old certificate. Ruumble Client now remembers it per
+  service and certificate (`ruumble.json`); entries of older versions lead to one new pairing per service
+
 ## [0.41.0] - 2026-11-08
 
 ### Changed

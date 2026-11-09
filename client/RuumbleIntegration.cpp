@@ -101,6 +101,17 @@ namespace {
 		return c;
 	}
 
+	/**
+	 * The pairing cookie in the view belongs to one certificate. A pairing is therefore remembered per service AND
+	 * certificate ("<url> <hash>", a URL never contains a space): after the certificate changed (an import of Mumble's
+	 * settings, a new certificate) the service sends a new pairing link instead of leaving the view on the old
+	 * identity, where it says "Mumble is not connected" while the client is connected. Entries with the URL alone
+	 * (up to 0.41.0) do not say which certificate they were for and count as not paired: one new link each.
+	 */
+	std::string pairingKey(const std::string &url, const std::string &certHash) {
+		return url + " " + certHash;
+	}
+
 } // namespace
 
 RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
@@ -214,12 +225,27 @@ RuumbleIntegration::RuumbleIntegration(MainWindow *mw) : QObject(mw), m_mw(mw) {
 	settings.bridgeUrl = config().bridgeUrl;
 	settings.hoverHint = false; // QtMumbleApi requests the root description itself, nobody has to hover
 
+	// the certificate of the current connection, as the core sends it in its hello
+	auto ownCertHash = [api = m_api.get()]() -> std::string {
+		const std::optional< uint32_t > session = api->localSession();
+		return session ? api->userHash(*session) : std::string();
+	};
 	m_core = std::make_unique< ruumble::Core >(
 		*m_api, *m_transport, settings,
 		[this](const std::string &url) { emit linkRequested(QString::fromStdString(url)); },
-		[](const std::string &url) { return config().pairedWith.count(url) > 0; },
-		[](const std::string &url) {
-			config().pairedWith.insert(url);
+		// both run on the core's worker thread, like the core's own MumbleApi calls
+		[ownCertHash](const std::string &url) {
+			const std::string hash = ownCertHash();
+			return !hash.empty() && config().pairedWith.count(pairingKey(url, hash)) > 0;
+		},
+		[ownCertHash](const std::string &url) {
+			const std::string hash = ownCertHash();
+			if (hash.empty()) {
+				return;
+			}
+			auto &paired = config().pairedWith;
+			paired.erase(url); // the entry without a certificate (up to 0.41.0)
+			paired.insert(pairingKey(url, hash));
 			config().save();
 		});
 
