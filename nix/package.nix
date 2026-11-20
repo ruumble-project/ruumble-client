@@ -27,7 +27,9 @@
   libpulseaudio,
   pipewire,
   libcap,
-  xorg,
+  libx11,
+  libxi,
+  libxext
 }:
 
 let
@@ -96,9 +98,9 @@ stdenv.mkDerivation {
     libpulseaudio
     pipewire
     libcap
-    xorg.libX11
-    xorg.libXi
-    xorg.libXext
+    libx11
+    libxi
+    libxext
   ];
 
   # the same options as tools/build.sh, plus what the sandbox needs
